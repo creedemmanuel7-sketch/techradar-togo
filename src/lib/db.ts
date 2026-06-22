@@ -184,3 +184,30 @@ export async function toggleSavedOpportunity(uid: string, opportunityId: string,
     throw error;
   }
 }
+
+/**
+ * Cascade-deletes all data belonging to a user:
+ * 1. All their published opportunities
+ * 2. Their Firestore user document
+ *
+ * The Firebase Auth account must be deleted separately by calling
+ * auth.currentUser.delete() on the client after this function resolves.
+ */
+export async function deleteUserData(uid: string): Promise<void> {
+  try {
+    // 1. Find & delete all opportunities published by this user
+    const q = query(
+      collection(db, OPPORTUNITIES_COLLECTION),
+      where("publisherId", "==", uid)
+    );
+    const snapshot = await getDocs(q);
+    const deleteOppPromises = snapshot.docs.map((d) => deleteDoc(d.ref));
+    await Promise.all(deleteOppPromises);
+
+    // 2. Delete the Firestore user document
+    await deleteDoc(doc(db, "users", uid));
+  } catch (error) {
+    console.error("Error deleting user data: ", error);
+    throw error;
+  }
+}

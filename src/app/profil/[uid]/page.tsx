@@ -5,9 +5,10 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getOpportunities, Opportunity, deleteOpportunity } from "@/lib/db";
+import { getOpportunities, Opportunity, deleteOpportunity, deleteUserData } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap, Trash2 } from "lucide-react";
+import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap, Trash2, AlertTriangle } from "lucide-react";
+import { deleteUser } from "firebase/auth";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -34,6 +35,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   const [activeTab, setActiveTab] = useState<"published" | "saved">("published");
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -108,6 +110,35 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
       toast.error("Erreur lors du téléchargement de la photo.");
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm(
+      `⚠️ Attention ! Cette action est irréversible.\n\nElle supprimera définitivement :\n- Votre compte\n- Toutes vos offres publiées\n\nTapez OK pour confirmer.`
+    );
+    if (!confirmed) return;
+
+    setIsDeletingAccount(true);
+    try {
+      // 1. Cascade-delete all Firestore data (opportunities + user doc)
+      await deleteUserData(uid);
+
+      // 2. Delete the Firebase Auth account
+      const currentUser = auth.currentUser;
+      if (currentUser) await deleteUser(currentUser);
+
+      toast.success("Votre compte a été supprimé.");
+      window.location.href = "/";
+    } catch (error: any) {
+      // Firebase may require recent login before deleting an auth account
+      if (error?.code === "auth/requires-recent-login") {
+        toast.error("Sécurité : veuillez vous déconnecter, vous reconnecter, puis réessayer.");
+      } else {
+        toast.error("Erreur lors de la suppression du compte.");
+        console.error(error);
+      }
+      setIsDeletingAccount(false);
     }
   };
 
@@ -269,6 +300,36 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
             </div>
           </div>
         </motion.div>
+
+        {/* DANGER ZONE — only visible to the account owner */}
+        {isOwner && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8 rounded-3xl border border-red-500/20 bg-red-500/5 p-6"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-red-400 text-sm">Supprimer mon compte</p>
+                  <p className="text-white/40 text-xs mt-0.5">
+                    Irréversible. Supprime votre profil et toutes vos offres publiées.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all text-sm font-bold"
+              >
+                {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Supprimer mon compte
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* TABS */}
         {isOwner && (
