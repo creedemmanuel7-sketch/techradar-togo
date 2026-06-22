@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { getOpportunities, Opportunity } from "@/lib/db";
+import { getFilteredOpportunities, Opportunity } from "@/lib/db";
 import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,32 +18,49 @@ export default function ExplorerPage() {
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [lastVisible, setLastVisible] = useState<any>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   // Fix hydration: only render client-dependent UI after mount
   useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => {
-    async function fetchOpps() {
-      try {
-        const data = await getOpportunities();
+  const fetchOpps = async (isLoadMore = false) => {
+    try {
+      if (isLoadMore) setIsFetchingMore(true);
+      else setLoading(true);
+      
+      const { data, lastDoc } = await getFilteredOpportunities(
+        { type: activeType, domain: activeDomain },
+        12, // Load 12 items at a time
+        isLoadMore ? lastVisible : null
+      );
+      
+      if (isLoadMore) {
+        setOpportunities(prev => [...prev, ...data]);
+      } else {
         setOpportunities(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
       }
+      setLastVisible(lastDoc);
+      setHasMore(data.length === 12);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setIsFetchingMore(false);
     }
-    fetchOpps();
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchOpps(false);
+  }, [activeType, activeDomain]);
 
   const filteredOpps = opportunities.filter(opp => {
-    const matchType = activeType === "Tous" || opp.typeLabel === activeType;
-    const matchDomain = activeDomain === "Tous" || opp.domain === activeDomain;
     const matchSearch = !searchQuery || 
       opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.domain.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchType && matchDomain && matchSearch;
+    return matchSearch;
   });
 
   const SidebarContent = () => (
@@ -276,6 +293,23 @@ export default function ExplorerPage() {
                 </AnimatePresence>
               </motion.div>
 
+              {hasMore && (
+                <div className="mt-12 flex justify-center pb-12">
+                  <button
+                    onClick={() => fetchOpps(true)}
+                    disabled={isFetchingMore}
+                    className="glass glass-pill px-6 py-3 flex items-center gap-2 text-sm font-bold hover:bg-white/10 transition-all group"
+                  >
+                    {isFetchingMore ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-[#C9A84C]" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-[#C9A84C] border-t-transparent animate-spin opacity-0 group-hover:opacity-100 transition-opacity absolute" />
+                    )}
+                    <span className={isFetchingMore ? "opacity-50" : ""}>Charger plus d'opportunités</span>
+                  </button>
+                </div>
+              )}
+
               {filteredOpps.length === 0 && (
                 <div className="w-full py-24 text-center">
                   <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -289,8 +323,8 @@ export default function ExplorerPage() {
               )}
             </>
           )}
-          </div>
-        </section>
+        </div>
+      </section>
       </main>
 
       {/* MOBILE SIDEBAR OVERLAY */}

@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp, updateDoc, arrayUnion, arrayRemove, deleteDoc, where, limit, startAfter, QueryDocumentSnapshot } from "firebase/firestore";
 import { db } from "./firebase";
 import { CategoryType } from "@/components/ui/CategoryBadge";
 
@@ -72,6 +72,62 @@ export async function getOpportunities(): Promise<Opportunity[]> {
   } catch (error) {
     console.error("Error getting opportunities: ", error);
     return [];
+  }
+}
+
+export async function getFilteredOpportunities(
+  filters: { type?: string; domain?: string },
+  limitCount: number = 10,
+  lastVisibleDoc: QueryDocumentSnapshot | null = null
+): Promise<{ data: Opportunity[]; lastDoc: QueryDocumentSnapshot | null }> {
+  try {
+    let constraints: any[] = [];
+    
+    if (filters.type && filters.type !== "Tous") {
+      constraints.push(where("typeLabel", "==", filters.type));
+    }
+    
+    if (filters.domain && filters.domain !== "Tous") {
+      constraints.push(where("domain", "==", filters.domain));
+    }
+    
+    constraints.push(orderBy("createdAt", "desc"));
+    constraints.push(limit(limitCount));
+    
+    if (lastVisibleDoc) {
+      constraints.push(startAfter(lastVisibleDoc));
+    }
+    
+    const q = query(collection(db, OPPORTUNITIES_COLLECTION), ...constraints);
+    
+    const querySnapshot = await getDocs(q);
+    const opportunities: Opportunity[] = [];
+    
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      opportunities.push({
+        id: docSnap.id,
+        title: data.title,
+        organization: data.organization,
+        type: data.type,
+        typeLabel: data.typeLabel,
+        domain: data.domain,
+        level: data.level,
+        location: data.location,
+        deadline: data.deadline,
+        externalLink: data.externalLink,
+        description: data.description || "",
+        publisherId: data.publisherId || "",
+        saves: data.saves || 0,
+        createdAt: data.createdAt?.toMillis() || 0,
+      });
+    });
+    
+    const lastDoc = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
+    return { data: opportunities, lastDoc };
+  } catch (error) {
+    console.error("Error getting filtered opportunities: ", error);
+    return { data: [], lastDoc: null };
   }
 }
 
