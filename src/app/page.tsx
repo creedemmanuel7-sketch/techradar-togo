@@ -40,29 +40,69 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center pb-24 px-4 sm:px-6 overflow-hidden">
+    <div className="flex flex-col items-center pb-24 px-4 sm:px-6 overflow-hidden relative">
+
+      {/* DYNAMIC FLOATING BACKGROUND BLOBS */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <motion.div
+          animate={{
+            x: [0, 100, 0],
+            y: [0, 50, 0],
+            rotate: [0, 90, 0],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#C9A84C]/5 blur-[120px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, -100, 0],
+            y: [0, 100, 0],
+            rotate: [0, -90, 0],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-[#F5E6A3]/5 blur-[100px]"
+        />
+      </div>
 
       {/* HERO SECTION */}
       <section className="w-full max-w-5xl mx-auto mt-16 sm:mt-24 md:mt-32 mb-24 md:mb-32 flex flex-col items-center text-center relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+          initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
+          className="flex flex-col items-center"
         >
-          <div className="inline-flex items-center gap-2 glass glass-pill px-4 py-2 mb-8 text-xs font-semibold text-[#C9A84C]">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+            className="inline-flex items-center gap-2 glass glass-pill px-4 py-2 mb-8 text-xs font-semibold text-[#C9A84C]"
+          >
             <div className="w-1.5 h-1.5 rounded-full bg-[#A5D6A7] animate-pulse" />
             #BuildForTheCommunity · Tech Meetup #5
-          </div>
+          </motion.div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 leading-tight">
             Toutes les opportunités tech.
             <br />
-            <span className="text-white/50">Au même endroit.</span>
+            <motion.span 
+              initial={{ backgroundPosition: "0% 50%" }}
+              animate={{ backgroundPosition: "100% 50%" }}
+              transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
+              className="text-transparent bg-clip-text bg-gradient-to-r from-white/80 via-[#C9A84C] to-white/80 bg-[length:200%_auto]"
+            >
+              Au même endroit.
+            </motion.span>
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-white/50 max-w-2xl mx-auto font-medium tracking-wide">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="mt-6 text-base sm:text-lg text-white/50 max-w-2xl mx-auto font-medium tracking-wide"
+          >
             Stages · Emplois · Événements · Formations · Programmes · Concours
-          </p>
+          </motion.p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="/explorer">

@@ -196,8 +196,30 @@ export default function ExplorerPage() {
           </AnimatePresence>
 
           {loading ? (
-            <div className="flex justify-center py-32">
-              <Loader2 className="w-10 h-10 animate-spin text-[#C9A84C]" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="glass glass-card p-6 h-full flex flex-col relative overflow-hidden">
+                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                  <div className="flex justify-between items-start mb-5">
+                    <div className="w-20 h-6 bg-white/10 rounded-md" />
+                    <div className="w-6 h-6 bg-white/10 rounded-full" />
+                  </div>
+                  <div className="mb-4 flex-1">
+                    <div className="w-3/4 h-6 bg-white/10 rounded-md mb-2" />
+                    <div className="w-1/2 h-4 bg-white/10 rounded-md mb-4" />
+                    <div className="w-full h-3 bg-white/5 rounded-md mb-1.5" />
+                    <div className="w-5/6 h-3 bg-white/5 rounded-md" />
+                  </div>
+                  <div className="flex gap-2 mb-5">
+                    <div className="w-16 h-6 bg-white/5 rounded-md" />
+                    <div className="w-16 h-6 bg-white/5 rounded-md" />
+                  </div>
+                  <div className="pt-4 border-t border-white/10 flex justify-between">
+                    <div className="w-24 h-4 bg-white/10 rounded-md" />
+                    <div className="w-12 h-4 bg-white/10 rounded-md" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <>
