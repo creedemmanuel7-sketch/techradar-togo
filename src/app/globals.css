@@ -15,6 +15,13 @@
   --color-neon-purple: #CE93D8;
   
   --font-sans: var(--font-inter), system-ui, sans-serif;
+  
+  --animate-shimmer: shimmer 2s infinite;
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
 
 :root {

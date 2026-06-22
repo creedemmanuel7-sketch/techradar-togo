@@ -1,17 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { addOpportunity, OpportunityData } from "@/lib/db";
 import { CategoryType } from "@/components/ui/CategoryBadge";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 export default function SoumettrePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "/connexion";
+      } else {
+        setCurrentUser(user);
+        setLoadingAuth(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [formData, setFormData] = useState({
     title: "",
     organization: "",
@@ -20,10 +36,11 @@ export default function SoumettrePage() {
     level: "Tous",
     location: "",
     deadline: "",
-    externalLink: ""
+    externalLink: "",
+    description: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -45,15 +62,16 @@ export default function SoumettrePage() {
       const dataToSave: OpportunityData = {
         ...formData,
         type: formData.type as CategoryType,
-        typeLabel: labels[formData.type]
+        typeLabel: labels[formData.type],
+        publisherId: currentUser?.uid || "",
       };
 
       await addOpportunity(dataToSave);
       
       setIsSuccess(true);
       setFormData({
-        title: "", organization: "", type: "emploi", domain: "Web", 
-        level: "Tous", location: "", deadline: "", externalLink: ""
+        title: "", organization: "", type: "emploi", domain: "Web",
+        level: "Tous", location: "", deadline: "", externalLink: "", description: "",
       });
       
       setTimeout(() => setIsSuccess(false), 5000); // Reset success state after 5s
@@ -63,6 +81,14 @@ export default function SoumettrePage() {
       setIsSubmitting(false);
     }
   };
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-[#C9A84C]" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center pb-24 px-4 sm:px-6 overflow-hidden min-h-screen">
@@ -134,6 +160,11 @@ export default function SoumettrePage() {
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-white/50 uppercase tracking-wider ml-1">Lien pour postuler (URL) *</label>
                 <input required type="url" name="externalLink" value={formData.externalLink} onChange={handleChange} placeholder="https://..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-[#C9A84C]/50 focus:bg-white/10 transition-all" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/50 uppercase tracking-wider ml-1">Description *</label>
+                <textarea required name="description" value={formData.description} onChange={handleChange} rows={5} placeholder="Décris l'opportunité : missions, profil recherché, conditions..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-[#C9A84C]/50 focus:bg-white/10 transition-all resize-none" />
               </div>
 
               <div className="pt-6">

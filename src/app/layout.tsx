@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -8,8 +11,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TechRadar Togo",
-  description: "Toutes les opportunités tech du Togo. Au même endroit.",
+  title: "TechRadar Togo — Le hub central de la tech togolaise",
+  description: "Toutes les opportunités tech du Togo. Stages, emplois, événements, formations, programmes et concours. Au même endroit.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +29,7 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col relative text-white bg-black">
-        {/* Background Elements */}
+        {/* Background Orbs */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="bg-orb orb-magenta"></div>
           <div className="bg-orb orb-cyan"></div>
@@ -32,29 +38,16 @@ export default function RootLayout({
         </div>
 
         {/* Navbar */}
-        <nav className="fixed top-0 w-full z-50 glass px-6 py-4 border-b border-white/10">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C9A84C] to-[#F5E6A3] flex items-center justify-center text-black font-bold text-lg">
-                TR
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white">TechRadar Togo</span>
-            </div>
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/70">
-              <a href="/explorer" className="hover:text-white transition-colors">Explorer</a>
-              <a href="/soumettre" className="hover:text-white transition-colors">Soumettre</a>
-              <a href="/connexion" className="hover:text-white transition-colors">Connexion</a>
-              <a href="/soumettre" className="glass px-5 py-2 rounded-full text-white font-medium hover:bg-white/10 transition-all border border-white/20">
-                Publier une opportunité
-              </a>
-            </div>
-          </div>
-        </nav>
+        <Navbar />
 
         {/* Main Content */}
-        <main className="flex-1 pt-24">
+        <main className="flex-1 pt-16">
           {children}
         </main>
+
+        {/* Footer */}
+        <Footer />
+        <Toaster theme="dark" position="bottom-right" richColors />
       </body>
     </html>
   );
