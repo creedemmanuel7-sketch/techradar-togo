@@ -7,8 +7,11 @@ import { addOpportunity, OpportunityData } from "@/lib/db";
 import { CategoryType } from "@/components/ui/CategoryBadge";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SoumettrePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,17 +19,32 @@ export default function SoumettrePage() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
+  const router = useRouter();
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = "/connexion";
+        router.push("/connexion");
       } else {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.role !== "recruiter") {
+              toast.error("Accès refusé : Seuls les recruteurs peuvent publier une offre.");
+              router.push("/explorer");
+              return;
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
         setCurrentUser(user);
         setLoadingAuth(false);
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -76,7 +94,8 @@ export default function SoumettrePage() {
       
       setTimeout(() => setIsSuccess(false), 5000); // Reset success state after 5s
     } catch (error) {
-      alert("Une erreur est survenue lors de la publication. Vérifie la console.");
+      toast.error("Une erreur est survenue lors de la publication.");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -168,7 +187,7 @@ export default function SoumettrePage() {
               </div>
 
               <div className="pt-6">
-                <GlassButton variant="primary" className="w-full py-4 text-lg bg-gradient-to-r from-[#C9A84C]/80 to-[#F5E6A3]/80 hover:from-[#C9A84C] hover:to-[#F5E6A3] text-black border-none font-bold" onClick={() => {}}>
+                <GlassButton type="submit" disabled={isSubmitting} variant="primary" className="w-full py-4 text-lg bg-gradient-to-r from-[#C9A84C]/80 to-[#F5E6A3]/80 hover:from-[#C9A84C] hover:to-[#F5E6A3] text-black border-none font-bold">
                   {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Publier l'opportunité"}
                 </GlassButton>
               </div>

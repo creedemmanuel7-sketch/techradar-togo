@@ -9,6 +9,7 @@ import { getOpportunities, Opportunity } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface UserProfile {
   name: string;
@@ -82,6 +83,17 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image valide.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+
     setUploadingPhoto(true);
     try {
       const storage = getStorage();
@@ -90,9 +102,10 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
       const downloadURL = await getDownloadURL(storageRef);
       await updateDoc(doc(db, "users", uid), { photoURL: downloadURL });
       setProfile((prev) => prev ? { ...prev, photoURL: downloadURL } : prev);
+      toast.success("Photo de profil mise à jour !");
     } catch (err) {
       console.error("Upload failed:", err);
-      alert("Erreur lors de l'upload de la photo.");
+      toast.error("Erreur lors du téléchargement de la photo.");
     } finally {
       setUploadingPhoto(false);
     }

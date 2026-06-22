@@ -3,6 +3,7 @@
 import { MapPin, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const SocialIcon = ({ name }: { name: string }) => {
   switch (name) {
@@ -34,7 +35,13 @@ const SocialIcon = ({ name }: { name: string }) => {
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
-  const isExplorer = pathname === "/explorer";
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isExplorer = mounted && pathname === "/explorer";
 
   return (
     <footer className={`relative mt-24 border-t border-white/10 bg-[#050505]/40 backdrop-blur-[40px] transition-all duration-300 z-10 ${isExplorer ? "lg:pl-64 xl:pl-72" : ""}`}>
@@ -65,8 +72,8 @@ export default function Footer() {
             {/* SOCIALS */}
             <div className="flex items-center gap-3">
               {[
-                { name: "LinkedIn", href: "#" },
-                { name: "Twitter/X", href: "#" },
+                { name: "LinkedIn", href: "https://linkedin.com/company/techradar-togo" },
+                { name: "Twitter/X", href: "https://twitter.com/techradar_togo" },
                 { name: "GitHub", href: "https://github.com/creedemmanuel7-sketch/techradar-togo" },
               ].map(({ name, href }) => (
                 <a

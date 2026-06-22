@@ -8,9 +8,11 @@ interface GlassButtonProps {
   variant?: "primary" | "secondary" | "ghost";
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
-export function GlassButton({ children, variant = "primary", className = "", onClick }: GlassButtonProps) {
+export function GlassButton({ children, variant = "primary", className = "", onClick, disabled = false, type = "button" }: GlassButtonProps) {
   const baseClasses = "relative px-6 py-3 rounded-full font-medium text-sm transition-all flex items-center justify-center gap-2 overflow-hidden";
   
   let variantClasses = "";
@@ -24,10 +26,12 @@ export function GlassButton({ children, variant = "primary", className = "", onC
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      type={type}
+      disabled={disabled}
+      whileHover={!disabled ? { scale: 1.02 } : {}}
+      whileTap={!disabled ? { scale: 0.98 } : {}}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className={`${baseClasses} ${variantClasses} ${className}`}
+      className={`${baseClasses} ${variantClasses} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       onClick={onClick}
     >
       {/* Effet de brillance interne façon iOS */}
