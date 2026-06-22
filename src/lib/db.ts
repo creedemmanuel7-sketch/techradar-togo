@@ -102,3 +102,23 @@ export async function getOpportunityById(id: string): Promise<Opportunity | null
     return null;
   }
 }
+
+import { updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+
+export async function toggleSavedOpportunity(uid: string, opportunityId: string, isSaving: boolean): Promise<void> {
+  try {
+    const userRef = doc(db, "users", uid);
+    if (isSaving) {
+      await updateDoc(userRef, {
+        savedOpportunities: arrayUnion(opportunityId)
+      });
+    } else {
+      await updateDoc(userRef, {
+        savedOpportunities: arrayRemove(opportunityId)
+      });
+    }
+  } catch (error) {
+    console.error("Error toggling saved opportunity: ", error);
+    throw error;
+  }
+}

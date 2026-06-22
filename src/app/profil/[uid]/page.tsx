@@ -18,6 +18,7 @@ interface UserProfile {
   bio?: string;
   location?: string;
   skills?: string;
+  savedOpportunities?: string[];
 }
 
 export default function ProfilPage({ params }: { params: Promise<{ uid: string }> }) {
@@ -28,6 +29,8 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<UserProfile>>({});
   const [userOpps, setUserOpps] = useState<Opportunity[]>([]);
+  const [savedOpps, setSavedOpps] = useState<Opportunity[]>([]);
+  const [activeTab, setActiveTab] = useState<"published" | "saved">("published");
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,9 +50,17 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
         setProfile(data);
         setEditData(data);
       }
-      // Fetch their published opportunities
+      // Fetch their published & saved opportunities
       const allOpps = await getOpportunities();
       setUserOpps(allOpps.filter((o) => o.publisherId === uid));
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data() as UserProfile;
+        if (data.savedOpportunities && data.savedOpportunities.length > 0) {
+          setSavedOpps(allOpps.filter((o) => data.savedOpportunities!.includes(o.id)));
+        }
+      }
+      
       setLoading(false);
     }
     fetchProfile();
@@ -232,35 +243,82 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
           </div>
         </motion.div>
 
-        {/* PUBLISHED OPPORTUNITIES */}
+        {/* TABS */}
+        {isOwner && (
+          <div className="flex items-center gap-4 border-b border-white/10 mb-6">
+            <button
+              onClick={() => setActiveTab("published")}
+              className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === "published" ? "border-[#C9A84C] text-[#C9A84C]" : "border-transparent text-white/50 hover:text-white"}`}
+            >
+              Mes publications
+            </button>
+            <button
+              onClick={() => setActiveTab("saved")}
+              className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === "saved" ? "border-[#C9A84C] text-[#C9A84C]" : "border-transparent text-white/50 hover:text-white"}`}
+            >
+              Mes favoris ({savedOpps.length})
+            </button>
+          </div>
+        )}
+
+        {/* OPPORTUNITIES GRID */}
         <div>
-          <h2 className="text-xl font-bold mb-6">
-            {isOwner ? "Mes opportunités publiées" : `Opportunités publiées par ${profile.name}`}
-          </h2>
-          {userOpps.length === 0 ? (
-            <div className="glass rounded-2xl p-10 text-center text-white/40 text-sm">
-              {isOwner
-                ? <>Vous n'avez encore rien publié. <a href="/soumettre" className="text-[#C9A84C] hover:underline">Publier maintenant →</a></>
-                : "Aucune opportunité publiée par cet utilisateur."}
-            </div>
+          {!isOwner && (
+            <h2 className="text-xl font-bold mb-6">
+              Opportunités publiées par {profile.name}
+            </h2>
+          )}
+          
+          {(activeTab === "published" || !isOwner) ? (
+            userOpps.length === 0 ? (
+              <div className="glass rounded-2xl p-10 text-center text-white/40 text-sm">
+                {isOwner
+                  ? <>Vous n'avez encore rien publié. <a href="/soumettre" className="text-[#C9A84C] hover:underline">Publier maintenant →</a></>
+                  : "Aucune opportunité publiée par cet utilisateur."}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {userOpps.map((opp) => (
+                  <a key={opp.id} href={`/opportunite/${opp.id}`} className="block group">
+                    <div className="glass rounded-2xl p-6 hover:bg-white/5 transition-all">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <CategoryBadge type={opp.type} label={opp.typeLabel} />
+                      </div>
+                      <h3 className="font-bold text-base mb-1 group-hover:text-[#F5E6A3] transition-colors">{opp.title}</h3>
+                      <p className="text-[#C9A84C] text-sm font-medium mb-3">{opp.organization}</p>
+                      <div className="flex items-center gap-3 text-xs text-white/40">
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{opp.location}</span>
+                        {opp.deadline && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{opp.deadline}</span>}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {userOpps.map((opp) => (
-                <a key={opp.id} href={`/opportunite/${opp.id}`} className="block group">
-                  <div className="glass rounded-2xl p-6 hover:bg-white/5 transition-all">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <CategoryBadge type={opp.type} label={opp.typeLabel} />
+            savedOpps.length === 0 ? (
+              <div className="glass rounded-2xl p-10 text-center text-white/40 text-sm">
+                Vous n'avez pas encore de favoris. <a href="/explorer" className="text-[#C9A84C] hover:underline">Explorer les offres →</a>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {savedOpps.map((opp) => (
+                  <a key={opp.id} href={`/opportunite/${opp.id}`} className="block group">
+                    <div className="glass rounded-2xl p-6 hover:bg-white/5 transition-all">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <CategoryBadge type={opp.type} label={opp.typeLabel} />
+                      </div>
+                      <h3 className="font-bold text-base mb-1 group-hover:text-[#F5E6A3] transition-colors">{opp.title}</h3>
+                      <p className="text-[#C9A84C] text-sm font-medium mb-3">{opp.organization}</p>
+                      <div className="flex items-center gap-3 text-xs text-white/40">
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{opp.location}</span>
+                        {opp.deadline && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{opp.deadline}</span>}
+                      </div>
                     </div>
-                    <h3 className="font-bold text-base mb-1 group-hover:text-[#F5E6A3] transition-colors">{opp.title}</h3>
-                    <p className="text-[#C9A84C] text-sm font-medium mb-3">{opp.organization}</p>
-                    <div className="flex items-center gap-3 text-xs text-white/40">
-                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{opp.location}</span>
-                      {opp.deadline && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{opp.deadline}</span>}
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
+                  </a>
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>
