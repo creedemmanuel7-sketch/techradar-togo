@@ -1,133 +1,61 @@
-"use client";
-
-import { useEffect, useState, use } from "react";
-import { getOpportunityById, Opportunity, toggleSavedOpportunity, deleteOpportunity } from "@/lib/db";
-import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getOpportunityById } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { ArrowLeft, MapPin, Clock, ExternalLink, Loader2, Building2, Layers, Heart, Share2, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
+import { ArrowLeft, MapPin, Clock, Building2, Layers, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Metadata } from "next";
+import { OpportuniteActions } from "./OpportuniteActions";
 
-export default function OpportunitePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const [opp, setOpp] = useState<Opportunity | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter();
+// Génération dynamique des balises SEO (Meta Tags, OpenGraph)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const opp = await getOpportunityById(id);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            if (data.savedOpportunities?.includes(id)) {
-              setIsSaved(true);
-            }
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, [id]);
-
-  useEffect(() => {
-    async function fetchOpp() {
-      const data = await getOpportunityById(id);
-      if (!data) setNotFound(true);
-      else setOpp(data);
-      setLoading(false);
-    }
-    fetchOpp();
-  }, [id]);
-
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("Lien copié dans le presse-papier !");
-    } catch (err) {
-      toast.error("Erreur lors de la copie du lien.");
-    }
-  };
-
-  const handleToggleSave = async () => {
-    if (!user) {
-      toast.error("Connectez-vous pour sauvegarder des opportunités.");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const newSavedState = !isSaved;
-      await toggleSavedOpportunity(user.uid, id, newSavedState);
-      setIsSaved(newSavedState);
-      toast.success(newSavedState ? "Opportunité sauvegardée dans vos favoris" : "Opportunité retirée des favoris");
-    } catch (error) {
-      toast.error("Une erreur s'est produite.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette opportunité ?")) return;
-    setIsDeleting(true);
-    try {
-      await deleteOpportunity(id);
-      toast.success("Opportunité supprimée !");
-      router.push("/explorer");
-    } catch (error) {
-      toast.error("Erreur lors de la suppression.");
-      setIsDeleting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-[#C9A84C]" />
-      </div>
-    );
+  if (!opp) {
+    return {
+      title: "Opportunité Introuvable | TechRadar Togo",
+      description: "Cette opportunité n'existe pas ou a été supprimée.",
+    };
   }
 
-  if (notFound || !opp) {
+  return {
+    title: `${opp.title} chez ${opp.organization} | TechRadar Togo`,
+    description: opp.description.substring(0, 160) + (opp.description.length > 160 ? "..." : ""),
+    openGraph: {
+      title: `${opp.title} - ${opp.organization}`,
+      description: opp.description.substring(0, 160),
+      type: "website",
+      locale: "fr_TG",
+      siteName: "TechRadar Togo",
+    },
+  };
+}
+
+export default async function OpportunitePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const opp = await getOpportunityById(id);
+
+  if (!opp) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
         <h1 className="text-3xl font-bold">Opportunité introuvable</h1>
         <p className="text-white/50">Cette page n'existe pas ou a été supprimée.</p>
-        <a href="/explorer" className="text-[#C9A84C] hover:underline flex items-center gap-2">
+        <Link href="/explorer" className="text-[#C9A84C] hover:underline flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Retour au Radar
-        </a>
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center pb-24 px-4 sm:px-6">
-
       {/* BREADCRUMB */}
       <div className="w-full max-w-4xl mx-auto mt-10 mb-8">
-        <a href="/explorer" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors">
+        <Link href="/explorer" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour au Radar
-        </a>
+        </Link>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-        className="w-full max-w-4xl mx-auto"
-      >
+      <div className="w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
         {/* HERO CARD */}
         <div className="glass rounded-3xl p-8 sm:p-12 mb-8 relative overflow-hidden">
           {/* Gradient background accent */}
@@ -142,52 +70,8 @@ export default function OpportunitePage({ params }: { params: Promise<{ id: stri
               <p className="text-[#C9A84C] text-xl font-bold">{opp.organization}</p>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-col gap-3">
-              {opp.externalLink ? (
-                <a
-                  href={opp.externalLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity shadow-lg shadow-[#C9A84C]/20"
-                >
-                  Postuler maintenant
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              ) : (
-                <div className="flex-shrink-0 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/30 text-sm text-center">
-                  Lien non disponible
-                </div>
-              )}
-
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleShare}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all text-sm font-medium"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Partager
-                </button>
-                <button 
-                  onClick={handleToggleSave}
-                  disabled={isSaving}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border transition-all text-sm font-medium ${isSaved ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'}`}
-                >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />}
-                  {isSaved ? "Sauvegardé" : "Favoris"}
-                </button>
-              </div>
-              {user?.uid === opp.publisherId && (
-                <button 
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-all text-sm font-medium mt-1"
-                >
-                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  Supprimer l'offre
-                </button>
-              )}
-            </div>
+            {/* Client Component: Boutons Interactifs (Favoris, Partager, Supprimer) */}
+            <OpportuniteActions opp={opp} />
           </div>
 
           {/* METADATA PILLS */}
@@ -242,7 +126,7 @@ export default function OpportunitePage({ params }: { params: Promise<{ id: stri
             <span className="text-white/30 text-sm">Lien indisponible</span>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
