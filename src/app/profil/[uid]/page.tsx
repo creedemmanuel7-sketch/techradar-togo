@@ -5,9 +5,9 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getOpportunities, Opportunity } from "@/lib/db";
+import { getOpportunities, Opportunity, deleteOpportunity } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap } from "lucide-react";
+import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -108,6 +108,20 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
       toast.error("Erreur lors du téléchargement de la photo.");
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  const handleDeleteOpp = async (e: React.MouseEvent, oppId: string) => {
+    e.preventDefault(); // Prevent navigating to the opportunity page
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette opportunité ?")) return;
+    
+    try {
+      await deleteOpportunity(oppId);
+      setUserOpps((prev) => prev.filter(opp => opp.id !== oppId));
+      toast.success("Opportunité supprimée avec succès.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la suppression.");
     }
   };
 
@@ -296,6 +310,15 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
                     <div className="glass rounded-2xl p-6 hover:bg-white/5 transition-all">
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <CategoryBadge type={opp.type} label={opp.typeLabel} />
+                        {isOwner && (
+                          <button
+                            onClick={(e) => handleDeleteOpp(e, opp.id)}
+                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                       <h3 className="font-bold text-base mb-1 group-hover:text-[#F5E6A3] transition-colors">{opp.title}</h3>
                       <p className="text-[#C9A84C] text-sm font-medium mb-3">{opp.organization}</p>

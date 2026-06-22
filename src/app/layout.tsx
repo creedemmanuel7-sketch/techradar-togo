@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -37,16 +38,18 @@ export default function RootLayout({
           <div className="bg-grain"></div>
         </div>
 
-        {/* Navbar */}
-        <Navbar />
+        <AuthProvider>
+          {/* Navbar */}
+          <Navbar />
 
-        {/* Main Content */}
-        <main className="flex-1 pt-16">
-          {children}
-        </main>
+          {/* Main Content */}
+          <main className="flex-1 pt-16">
+            {children}
+          </main>
 
-        {/* Footer */}
-        <Footer />
+          {/* Footer */}
+          <Footer />
+        </AuthProvider>
         <Toaster theme="dark" position="bottom-right" richColors />
       </body>
     </html>

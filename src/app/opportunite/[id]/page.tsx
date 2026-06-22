@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { getOpportunityById, Opportunity, toggleSavedOpportunity } from "@/lib/db";
+import { getOpportunityById, Opportunity, toggleSavedOpportunity, deleteOpportunity } from "@/lib/db";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { ArrowLeft, MapPin, Clock, ExternalLink, Loader2, Building2, Layers, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, ExternalLink, Loader2, Building2, Layers, Heart, Share2, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -18,6 +19,8 @@ export default function OpportunitePage({ params }: { params: Promise<{ id: stri
   const [user, setUser] = useState<User | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -73,6 +76,19 @@ export default function OpportunitePage({ params }: { params: Promise<{ id: stri
       toast.error("Une erreur s'est produite.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette opportunité ?")) return;
+    setIsDeleting(true);
+    try {
+      await deleteOpportunity(id);
+      toast.success("Opportunité supprimée !");
+      router.push("/explorer");
+    } catch (error) {
+      toast.error("Erreur lors de la suppression.");
+      setIsDeleting(false);
     }
   };
 
@@ -161,6 +177,16 @@ export default function OpportunitePage({ params }: { params: Promise<{ id: stri
                   {isSaved ? "Sauvegardé" : "Favoris"}
                 </button>
               </div>
+              {user?.uid === opp.publisherId && (
+                <button 
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-all text-sm font-medium mt-1"
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Supprimer l'offre
+                </button>
+              )}
             </div>
           </div>
 

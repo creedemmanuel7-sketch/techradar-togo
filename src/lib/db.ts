@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { CategoryType } from "@/components/ui/CategoryBadge";
 
@@ -103,8 +103,14 @@ export async function getOpportunityById(id: string): Promise<Opportunity | null
   }
 }
 
-import { updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-
+export async function deleteOpportunity(id: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, OPPORTUNITIES_COLLECTION, id));
+  } catch (error) {
+    console.error("Error deleting opportunity: ", error);
+    throw error;
+  }
+}
 export async function toggleSavedOpportunity(uid: string, opportunityId: string, isSaving: boolean): Promise<void> {
   try {
     const userRef = doc(db, "users", uid);
