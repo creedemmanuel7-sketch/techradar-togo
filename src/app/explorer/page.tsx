@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { getFilteredOpportunities, Opportunity } from "@/lib/db";
+import { TYPE_FILTER_OPTIONS, DOMAIN_FILTER_OPTIONS } from "@/lib/constants";
 import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const types = ["Tous", "Stage", "Emploi", "Événement", "Formation", "Programme", "Concours"];
-const domains = ["Tous", "Web", "Mobile", "Data", "Design", "IA", "Cybersécurité"];
+
 
 export default function ExplorerPage() {
   const [activeType, setActiveType] = useState("Tous");
@@ -74,7 +74,7 @@ export default function ExplorerPage() {
       <div className="mb-8">
         <h4 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Type d'opportunité</h4>
         <div className="flex flex-col gap-1">
-          {types.map((type) => (
+          {TYPE_FILTER_OPTIONS.map((type) => (
             <button
               key={type}
               onClick={() => { setActiveType(type); setIsSidebarOpen(false); }}
@@ -95,7 +95,7 @@ export default function ExplorerPage() {
       <div>
         <h4 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Domaine Technique</h4>
         <div className="flex flex-col gap-1">
-          {domains.map((dom) => (
+          {DOMAIN_FILTER_OPTIONS.map((dom) => (
             <button
               key={dom}
               onClick={() => { setActiveDomain(dom); setIsSidebarOpen(false); }}

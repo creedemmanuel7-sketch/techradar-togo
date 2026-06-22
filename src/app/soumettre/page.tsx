@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { addOpportunity, OpportunityData } from "@/lib/db";
 import { CategoryType } from "@/components/ui/CategoryBadge";
+import { OPPORTUNITY_TYPES, DOMAINS, TYPE_LABEL } from "@/lib/constants";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { auth, db } from "@/lib/firebase";
@@ -67,20 +68,10 @@ export default function SoumettrePage() {
     setIsSubmitting(true);
     
     try {
-      // Mapping type to typeLabel for simplicity
-      const labels: Record<string, string> = {
-        "stage": "Stage",
-        "emploi": "Emploi",
-        "evenement": "Événement",
-        "formation": "Formation",
-        "programme": "Programme",
-        "concours": "Concours"
-      };
-
       const dataToSave: OpportunityData = {
         ...formData,
         type: formData.type as CategoryType,
-        typeLabel: labels[formData.type],
+        typeLabel: TYPE_LABEL[formData.type as CategoryType],
         publisherId: currentUser?.uid || "",
       };
 
@@ -151,18 +142,19 @@ export default function SoumettrePage() {
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-white/50 uppercase tracking-wider ml-1">Type d'opportunité *</label>
                   <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#C9A84C]/50 transition-all appearance-none">
-                    <option value="emploi">Emploi</option>
-                    <option value="stage">Stage</option>
-                    <option value="evenement">Événement</option>
-                    <option value="formation">Formation</option>
-                    <option value="programme">Programme d'accompagnement</option>
-                    <option value="concours">Concours / Hackathon</option>
+                    {OPPORTUNITY_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-white/50 uppercase tracking-wider ml-1">Domaine</label>
-                  <input name="domain" value={formData.domain} onChange={handleChange} placeholder="ex: Web, Mobile, Data..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-[#C9A84C]/50 focus:bg-white/10 transition-all" />
+                  <select name="domain" value={formData.domain} onChange={handleChange} className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#C9A84C]/50 transition-all appearance-none">
+                    {DOMAINS.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-2">
