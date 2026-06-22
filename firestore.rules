@@ -53,8 +53,8 @@ service cloud.firestore {
         // Prevent users from changing their own role to 'recruiter' on the client
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
 
-      // Prevent deletion of user documents from the client
-      allow delete: if false;
+      // The owner can delete their own user document (used during cascade deletion)
+      allow delete: if isOwner(userId);
     }
   }
 }
