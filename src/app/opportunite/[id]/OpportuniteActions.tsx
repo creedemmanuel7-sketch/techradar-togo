@@ -12,10 +12,12 @@ import { toast } from "sonner";
 
 interface OpportuniteActionsProps {
   opp: Opportunity;
+  externalLink?: string;
 }
 
-export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
+export function OpportuniteActions({ opp, externalLink }: OpportuniteActionsProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -29,6 +31,7 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
           const userDoc = await getDoc(doc(db, "users", currentUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
+            setUserRole(data.role || null);
             if (data.savedOpportunities?.includes(opp.id)) {
               setIsSaved(true);
             }
@@ -36,6 +39,8 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
         } catch (error) {
           console.error(error);
         }
+      } else {
+        setUserRole(null);
       }
     });
     return () => unsubscribe();
@@ -93,14 +98,17 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
           <Share2 className="w-4 h-4" />
           Partager
         </button>
-        <button 
-          onClick={handleToggleSave}
-          disabled={isSaving}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border transition-all text-sm font-medium ${isSaved ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'}`}
-        >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />}
-          {isSaved ? "Sauvegardé" : "Favoris"}
-        </button>
+        {/* Hide Save button for recruiters — they manage opportunities, they don't save them */}
+        {userRole !== "recruiter" && (
+          <button 
+            onClick={handleToggleSave}
+            disabled={isSaving}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border transition-all text-sm font-medium ${isSaved ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'}`}
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />}
+            {isSaved ? "Sauvegardé" : "Favoris"}
+          </button>
+        )}
       </div>
       
       {user?.uid === opp.publisherId && (
@@ -121,6 +129,18 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
             Supprimer l'offre
           </button>
         </div>
+      )}
+
+      {/* Bouton Postuler : visible uniquement pour les talents */}
+      {userRole === "talent" && externalLink && (
+        <a
+          href={externalLink}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity mt-1"
+        >
+          Postuler <ExternalLink className="w-4 h-4" />
+        </a>
       )}
     </div>
   );

@@ -70,8 +70,8 @@ export default async function OpportunitePage({ params }: { params: Promise<{ id
               <p className="text-[#C9A84C] text-xl font-bold">{opp.organization}</p>
             </div>
 
-            {/* Client Component: Boutons Interactifs (Favoris, Partager, Supprimer) */}
-            <OpportuniteActions opp={opp} />
+            {/* Client Component: Boutons Interactifs (Favoris, Partager, Supprimer, Postuler) */}
+            <OpportuniteActions opp={opp} externalLink={opp.externalLink} />
           </div>
 
           {/* METADATA PILLS */}
@@ -107,25 +107,6 @@ export default async function OpportunitePage({ params }: { params: Promise<{ id
           )}
         </div>
 
-        {/* CTA BOTTOM */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass rounded-3xl px-8 py-6">
-          <div>
-            <p className="font-bold text-lg">Intéressé(e) par cette opportunité ?</p>
-            <p className="text-sm text-white/50">Ne laissez pas passer votre chance dans l'écosystème tech togolais.</p>
-          </div>
-          {opp.externalLink ? (
-            <a
-              href={opp.externalLink}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-shrink-0 flex items-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity"
-            >
-              Postuler <ExternalLink className="w-4 h-4" />
-            </a>
-          ) : (
-            <span className="text-white/30 text-sm">Lien indisponible</span>
-          )}
-        </div>
       </div>
     </div>
   );
