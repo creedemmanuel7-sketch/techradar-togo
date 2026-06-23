@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle, Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +19,7 @@ export default function Navbar() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
@@ -109,10 +110,50 @@ export default function Navbar() {
                   </a>
                 )}
 
+                {/* NOTIFICATION MENU */}
+                <div className="relative">
+                  <button
+                    onClick={() => { setIsNotifOpen(!isNotifOpen); setIsUserMenuOpen(false); }}
+                    className="relative flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 w-10 h-10 rounded-xl transition-all"
+                  >
+                    <Bell className="w-5 h-5 text-white/80" />
+                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  </button>
+
+                  <AnimatePresence>
+                    {isNotifOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-2 w-80 bg-[#111] border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden z-50"
+                      >
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                          <h3 className="font-bold text-sm">Notifications</h3>
+                          <span className="text-xs text-[#C9A84C] font-medium cursor-pointer">Tout marquer comme lu</span>
+                        </div>
+                        <div className="flex flex-col max-h-80 overflow-y-auto">
+                          <div className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer relative">
+                            <div className="w-2 h-2 bg-[#C9A84C] rounded-full absolute left-2 top-6"></div>
+                            <p className="text-sm font-medium text-white/90 pl-3">Nouveau Hackathon "Build for the Community" !</p>
+                            <p className="text-xs text-white/50 pl-3 mt-1">Il y a 10 min</p>
+                          </div>
+                          <div className="p-4 hover:bg-white/5 transition-colors cursor-pointer relative">
+                            <div className="w-2 h-2 bg-[#C9A84C] rounded-full absolute left-2 top-6"></div>
+                            <p className="text-sm font-medium text-white/90 pl-3">🔥 Votre profil matche à 100% avec le poste "Développeur Senior Vue.js" !</p>
+                            <p className="text-xs text-white/50 pl-3 mt-1">Il y a 1 heure</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* USER MENU */}
                 <div className="relative">
                   <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    onClick={() => { setIsUserMenuOpen(!isUserMenuOpen); setIsNotifOpen(false); }}
                     className="flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-2 rounded-xl transition-all"
                   >
                     {profile.photoURL ? (
