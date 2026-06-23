@@ -83,21 +83,7 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
 
   return (
     <div className="flex flex-col sm:flex-col gap-3 w-full sm:w-auto mt-6 sm:mt-0">
-      {opp.externalLink ? (
-        <a
-          href={opp.externalLink}
-          target="_blank"
-          rel="noreferrer"
-          className="flex-shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity shadow-lg shadow-[#C9A84C]/20"
-        >
-          Postuler maintenant
-          <ExternalLink className="w-4 h-4" />
-        </a>
-      ) : (
-        <div className="flex-shrink-0 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/30 text-sm text-center">
-          Lien non disponible
-        </div>
-      )}
+      {/* Bouton Postuler retiré (H-1) : Uniquement affiché dans le CTA du bas pour éviter la confusion */}
 
       <div className="flex items-center gap-3">
         <button 
