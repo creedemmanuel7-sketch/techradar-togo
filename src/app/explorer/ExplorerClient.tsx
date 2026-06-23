@@ -14,6 +14,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { calculateMatchScore } from "@/lib/match";
+import { Bell } from "lucide-react";
 
 interface ExplorerClientProps {
   initialOpportunities: Opportunity[];
@@ -69,6 +70,13 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     return () => unsubscribe();
   }, []);
 
+  // Show a nudge banner if the user is logged in but has no skills set
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setIsLoggedIn(!!u));
+    return () => unsub();
+  }, []);
+
   const opportunities = [...(swrData ?? initialOpportunities), ...extraOpps];
 
   const filteredOpps = opportunities.filter(opp => {
@@ -81,7 +89,12 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
 
   const oppsWithMatch = filteredOpps.map(opp => ({
     ...opp,
-    matchScore: userSkills ? calculateMatchScore(userSkills, `${opp.title} ${opp.description || ""} ${opp.domain}`) : 0
+    // Pass domain so we get a score even without user skills (domain-based fallback)
+    matchScore: calculateMatchScore(
+      userSkills,
+      `${opp.title} ${opp.description || ""} ${opp.domain}`,
+      opp.domain
+    )
   })).sort((a, b) => b.matchScore - a.matchScore);
 
   const SidebarContent = () => (
@@ -142,6 +155,21 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
       </aside>
 
       <main className="flex-1 lg:ml-64 xl:ml-72 flex flex-col min-w-0 pb-24">
+
+        {/* Profile incomplete nudge — shown to logged-in users without skills */}
+        {isLoggedIn && !userSkills && (
+          <div className="w-full bg-[#C9A84C]/10 border-b border-[#C9A84C]/20 px-4 py-2.5 flex items-center justify-center gap-2 text-xs text-[#C9A84C] font-medium">
+            <Bell className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>
+              Renseignez vos compétences dans votre{" "}
+              <a href="#" onClick={() => window.location.href=`/profil/${(auth.currentUser?.uid ?? "")}`} className="underline hover:text-[#F5E6A3]">
+                profil
+              </a>{" "}
+              pour activer le Radar de matching personnalisé.
+            </span>
+          </div>
+        )}
+
         <section className="w-full max-w-6xl mx-auto mt-12 mb-6 px-4 sm:px-8 relative z-10">
           <div className="flex items-end justify-between">
             <div>
@@ -260,15 +288,15 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                             <div className="flex justify-between items-start mb-5 relative">
                               <CategoryBadge type={opp.type} label={opp.typeLabel} />
                               
-                              {/* Match Badge */}
-                              {userSkills && opp.matchScore > 0 && (
+                              {/* Match Badge — visible pour tous (skills ou domaine) */}
+                              {opp.matchScore > 0 && (
                                 <div className="absolute left-1/2 -translate-x-1/2 top-0">
                                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg ${
                                     opp.matchScore >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
                                     opp.matchScore >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
-                                    "bg-white/10 text-white/60 border-white/10"
+                                    "bg-white/10 text-white/50 border-white/10"
                                   }`}>
-                                    Match : {opp.matchScore}%
+                                    {userSkills ? `Match : ${opp.matchScore}%` : `Pertinence : ${opp.matchScore}%`}
                                   </span>
                                 </div>
                               )}
