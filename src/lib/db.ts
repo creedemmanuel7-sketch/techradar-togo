@@ -94,27 +94,11 @@ export async function getFilteredOpportunities(
   lastVisibleDoc: QueryDocumentSnapshot | null = null
 ): Promise<{ data: Opportunity[]; lastDoc: QueryDocumentSnapshot | null }> {
   try {
-    let constraints: any[] = [];
-    
-    if (filters.type && filters.type !== "Tous") {
-      constraints.push(where("typeLabel", "==", filters.type));
-    }
-    
-    if (filters.domain && filters.domain !== "Tous") {
-      constraints.push(where("domain", "==", filters.domain));
-    }
-    
-    constraints.push(orderBy("createdAt", "desc"));
-    constraints.push(limit(limitCount));
-    
-    if (lastVisibleDoc) {
-      constraints.push(startAfter(lastVisibleDoc));
-    }
-    
-    const q = query(collection(db, OPPORTUNITIES_COLLECTION), ...constraints);
-    
+    // HACKATHON FIX: Fetch all and filter in memory to avoid missing Firestore composite indexes error
+    const q = query(collection(db, OPPORTUNITIES_COLLECTION));
     const querySnapshot = await getDocs(q);
-    const opportunities: Opportunity[] = [];
+    
+    let opportunities: Opportunity[] = [];
     
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -136,8 +120,33 @@ export async function getFilteredOpportunities(
       });
     });
     
-    const lastDoc = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
-    return { data: opportunities, lastDoc };
+    // Sort descending by createdAt
+    opportunities.sort((a, b) => b.createdAt - a.createdAt);
+
+    // Apply Domain filter
+    if (filters.domain && filters.domain !== "Tous") {
+      opportunities = opportunities.filter((o) => o.domain === filters.domain);
+    }
+    
+    // Apply Type filter
+    // UI sends the label (e.g. "Événement"), DB stores the value (e.g. "evenement")
+    if (filters.type && filters.type !== "Tous") {
+      const typeMapping: Record<string, string> = {
+        "Emploi": "emploi",
+        "Stage": "stage",
+        "Événement": "evenement",
+        "Formation": "formation",
+        "Programme": "programme",
+        "Concours": "concours"
+      };
+      const targetType = typeMapping[filters.type] || filters.type;
+      opportunities = opportunities.filter((o) => o.type === targetType);
+    }
+    
+    // Ignore pagination for the hackathon demo so all results show up
+    const finalData = opportunities.slice(0, 50);
+    
+    return { data: finalData, lastDoc: null };
   } catch (error) {
     console.error("Error getting filtered opportunities: ", error);
     return { data: [], lastDoc: null };
