@@ -34,21 +34,25 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [extraOpps, setExtraOpps] = useState<Opportunity[]>([]);
-  const [lastVisible, setLastVisible] = useState<any>(null);
-  const [hasMore, setHasMore] = useState(initialOpportunities.length === 12);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 12;
+
+  // Reset to page 1 whenever filters or search change
+  const prevFilters = `${activeType}|${activeDomain}|${searchQuery}`;
+  const [_prevFiltersState, setPrevFiltersState] = useState(prevFilters);
+  if (prevFilters !== _prevFiltersState) {
+    setCurrentPage(1);
+    setPrevFiltersState(prevFilters);
+  }
 
   // SWR: fetches from Firestore and caches the result.
   // On focus, it revalidates silently so the user always sees fresh data.
   const swrKey = `opportunities|${activeType}|${activeDomain}`;
   const { data: swrData, isLoading: loading } = useSWR(swrKey, fetchOpps, {
-    fallbackData: initialOpportunities, // SSR data hydrates instantly
+    fallbackData: initialOpportunities,
     revalidateOnFocus: true,
-    onSuccess: (data) => {
-      // Reset extra (pagination) results when filters change
-      setExtraOpps([]);
-      setLastVisible(null);
-      setHasMore(data.length === 12);
+    onSuccess: () => {
+      setCurrentPage(1);
     },
   });
 
@@ -77,7 +81,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     return () => unsub();
   }, []);
 
-  const rawOpportunities = [...(swrData ?? initialOpportunities), ...extraOpps];
+  const rawOpportunities = swrData ?? initialOpportunities;
 
   // Deduplicate by ID to prevent React key warnings during SWR revalidation or pagination overlaps
   const oppsMap = new Map<string, Opportunity>();
@@ -94,13 +98,19 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
 
   const oppsWithMatch = filteredOpps.map(opp => ({
     ...opp,
-    // Pass domain so we get a score even without user skills (domain-based fallback)
     matchScore: calculateMatchScore(
       userSkills,
       `${opp.title} ${opp.description || ""} ${opp.domain}`,
       opp.domain
     )
   })).sort((a, b) => b.matchScore - a.matchScore);
+
+  // Pagination
+  const totalPages = Math.ceil(oppsWithMatch.length / PAGE_SIZE);
+  const paginatedOpps = oppsWithMatch.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const SidebarContent = () => (
     <div className="w-full">
@@ -279,7 +289,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
               <>
                 <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   <AnimatePresence>
-                    {oppsWithMatch.map((opp) => (
+                    {paginatedOpps.map((opp) => (
                       <motion.div
                         key={opp.id}
                         layout
@@ -344,36 +354,35 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                   </AnimatePresence>
                 </motion.div>
 
-                {hasMore && (
-                  <div className="mt-12 flex justify-center pb-12">
+                {/* PAGINATION */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex justify-center items-center gap-2 pb-12">
                     <button
-                      onClick={async () => {
-                        setIsFetchingMore(true);
-                        try {
-                          const cursor = lastVisible;
-                          const { data, lastDoc } = await getFilteredOpportunities(
-                            { type: activeType, domain: activeDomain },
-                            12,
-                            cursor
-                          );
-                          setExtraOpps(prev => [...prev, ...data]);
-                          setLastVisible(lastDoc);
-                          setHasMore(data.length === 12);
-                        } catch (e) {
-                          console.error(e);
-                        } finally {
-                          setIsFetchingMore(false);
-                        }
-                      }}
-                      disabled={isFetchingMore}
-                      className="glass glass-pill px-6 py-3 flex items-center gap-2 text-sm font-bold hover:bg-white/10 transition-all group"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="glass px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-30 hover:bg-white/10 transition-all"
                     >
-                      {isFetchingMore ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-[#C9A84C]" />
-                      ) : (
-                        <div className="w-4 h-4 rounded-full border-2 border-[#C9A84C] border-t-transparent animate-spin opacity-0 group-hover:opacity-100 transition-opacity absolute" />
-                      )}
-                      <span className={isFetchingMore ? "opacity-50" : ""}>Charger plus d'opportunités</span>
+                      ←
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
+                          page === currentPage
+                            ? "bg-[#C9A84C] text-black shadow-lg"
+                            : "glass text-white/60 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="glass px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-30 hover:bg-white/10 transition-all"
+                    >
+                      →
                     </button>
                   </div>
                 )}
