@@ -77,7 +77,12 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     return () => unsub();
   }, []);
 
-  const opportunities = [...(swrData ?? initialOpportunities), ...extraOpps];
+  const rawOpportunities = [...(swrData ?? initialOpportunities), ...extraOpps];
+
+  // Deduplicate by ID to prevent React key warnings during SWR revalidation or pagination overlaps
+  const oppsMap = new Map<string, Opportunity>();
+  rawOpportunities.forEach(opp => oppsMap.set(opp.id, opp));
+  const opportunities = Array.from(oppsMap.values());
 
   const filteredOpps = opportunities.filter(opp => {
     const matchSearch = !searchQuery || 
