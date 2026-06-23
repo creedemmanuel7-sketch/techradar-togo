@@ -220,32 +220,48 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
             <div className="flex-1 min-w-0">
               {isEditing ? (
                 <div className="space-y-4">
-                  <input
-                    value={editData.name || ""}
-                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-2xl font-bold text-white outline-none focus:border-[#C9A84C]/50"
-                    placeholder="Ton nom complet"
-                  />
-                  <textarea
-                    value={editData.bio || ""}
-                    onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                    rows={3}
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white/80 outline-none focus:border-[#C9A84C]/50 resize-none placeholder-white/30"
-                    placeholder="Décris-toi en quelques mots... (ex: Développeur React passionné, 3 ans d'exp.)"
-                  />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label htmlFor="edit-name" className="text-sm font-semibold text-white/70 ml-1">Nom complet</label>
                     <input
-                      value={editData.location || ""}
-                      onChange={(e) => setEditData({ ...editData, location: e.target.value })}
-                      className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
-                      placeholder="📍 Ville (ex: Lomé)"
+                      id="edit-name"
+                      value={editData.name || ""}
+                      onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-2xl font-bold text-white outline-none focus:border-[#C9A84C]/50"
+                      placeholder="Ton nom complet"
                     />
-                    <input
-                      value={editData.skills || ""}
-                      onChange={(e) => setEditData({ ...editData, skills: e.target.value })}
-                      className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
-                      placeholder="🛠️ Compétences (ex: React, Node)"
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="edit-bio" className="text-sm font-semibold text-white/70 ml-1">Bio</label>
+                    <textarea
+                      id="edit-bio"
+                      value={editData.bio || ""}
+                      onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
+                      rows={3}
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white/80 outline-none focus:border-[#C9A84C]/50 resize-none placeholder-white/30"
+                      placeholder="Décris-toi en quelques mots... (ex: Développeur React passionné, 3 ans d'exp.)"
                     />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label htmlFor="edit-location" className="text-sm font-semibold text-white/70 ml-1">Ville</label>
+                      <input
+                        id="edit-location"
+                        value={editData.location || ""}
+                        onChange={(e) => setEditData({ ...editData, location: e.target.value })}
+                        className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
+                        placeholder="📍 ex: Lomé"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="edit-skills" className="text-sm font-semibold text-white/70 ml-1">Compétences</label>
+                      <input
+                        id="edit-skills"
+                        value={editData.skills || ""}
+                        onChange={(e) => setEditData({ ...editData, skills: e.target.value })}
+                        className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
+                        placeholder="🛠️ ex: React, Node"
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -346,7 +362,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
                         {isOwner && (
                           <button
                             onClick={(e) => handleDeleteOpp(e, opp.id)}
-                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
+                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                             title="Supprimer"
                           >
                             <Trash2 className="w-4 h-4" />

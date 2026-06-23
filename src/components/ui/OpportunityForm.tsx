@@ -48,7 +48,7 @@ export function OpportunityForm({
   const selectClass =
     "w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#C9A84C]/50 transition-all appearance-none";
   const labelClass =
-    "text-xs font-semibold text-white/50 uppercase tracking-wider ml-1 block mb-2";
+    "text-sm font-semibold text-white/70 uppercase tracking-wider ml-1 block mb-2";
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
