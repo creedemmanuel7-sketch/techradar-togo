@@ -63,7 +63,7 @@ export default function InscriptionPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             
             {/* Role Selection */}
-            <div className="flex bg-[#111] p-1 rounded-xl mb-6">
+            <div className="flex bg-[#111] p-1 rounded-xl mb-2">
               <button
                 type="button"
                 onClick={() => setRole("talent")}
@@ -74,11 +74,15 @@ export default function InscriptionPage() {
               <button
                 type="button"
                 onClick={() => setRole("recruiter")}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 ${role === "recruiter" ? "bg-white/10 text-[#C9A84C] shadow" : "text-white/50 hover:text-white"}`}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 ${role === "recruiter" ? "bg-[#C9A84C]/20 text-[#C9A84C] shadow" : "text-white/50 hover:text-white"}`}
               >
                 <Briefcase className="w-4 h-4" /> Recruteur
               </button>
             </div>
+            {/* M-5 : Description du rôle choisi */}
+            <p className="text-xs text-white/40 text-center mb-6 min-h-[16px]">
+              {role === "talent" ? "Je cherche des opportunités dans la tech" : "Je publie des offres pour ma structure"}
+            </p>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-white/50 uppercase tracking-wider ml-1">Nom complet</label>
@@ -105,7 +109,7 @@ export default function InscriptionPage() {
             </div>
 
             <div className="pt-4">
-              <GlassButton variant="primary" className="w-full py-4 text-lg bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 border-white/20 font-bold" onClick={() => {}}>
+              <GlassButton variant="primary" className="w-full py-4 text-lg bg-gradient-to-r from-[#C9A84C]/80 to-[#F5E6A3]/80 hover:from-[#C9A84C] hover:to-[#F5E6A3] text-black border-none font-bold" onClick={() => {}}>
                 {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Créer mon compte"}
               </GlassButton>
             </div>
