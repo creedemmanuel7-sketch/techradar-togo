@@ -23,13 +23,14 @@ const DOMAINS = ["web", "mobile", "data", "design", "ia", "cybersécurité", "en
 
 // Mots associés à chaque domaine (pour matching implicite)
 const DOMAIN_KEYWORDS: Record<string, string[]> = {
-  web: ["react", "vue", "angular", "html", "css", "javascript", "typescript", "frontend", "backend", "node", "django", "api", "rest"],
-  mobile: ["flutter", "react native", "android", "ios", "swift", "kotlin", "mobile"],
-  data: ["python", "pandas", "sql", "machine learning", "tableau", "powerbi", "analytics", "data", "bigquery"],
-  design: ["figma", "ux", "ui", "prototypage", "wireframe", "sketch", "design"],
-  ia: ["machine learning", "deep learning", "tensorflow", "gpt", "llm", "nlp", "ia", "modèle"],
-  cybersécurité: ["sécurité", "pentest", "cybersécurité", "firewall", "ctf", "audit"],
-  général: ["gestion", "scrum", "agile", "jira", "product", "management", "communication"],
+  web: ["react", "vue", "angular", "html", "css", "javascript", "typescript", "frontend", "backend", "node", "django", "api", "rest", "fullstack"],
+  mobile: ["flutter", "react native", "android", "ios", "swift", "kotlin", "mobile", "app"],
+  data: ["python", "pandas", "sql", "machine learning", "tableau", "powerbi", "analytics", "data", "bigquery", "ia"],
+  design: ["figma", "ux", "ui", "prototypage", "wireframe", "sketch", "design", "interface"],
+  ia: ["machine learning", "deep learning", "tensorflow", "gpt", "llm", "nlp", "ia", "modèle", "intelligence", "artificielle", "data"],
+  cybersecurite: ["sécurité", "pentest", "cybersécurité", "firewall", "ctf", "audit", "hacker", "owasp"],
+  entrepreneuriat: ["startup", "business", "levée", "fonds", "incubateur", "pitch", "mvp", "accélération"],
+  general: ["gestion", "scrum", "agile", "jira", "product", "management", "communication", "hackathon"],
 };
 
 function tokenize(text: string): string[] {
