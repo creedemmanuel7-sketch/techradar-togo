@@ -33,8 +33,9 @@ service cloud.firestore {
       allow create: if isAuthenticated();
 
       // Only the original publisher can update or delete their own opportunity
+      // HACKATHON: Allow deletion of seed data
       allow update, delete: if isAuthenticated()
-        && resource.data.publisherId == request.auth.uid;
+        && (resource.data.publisherId == request.auth.uid || resource.data.publisherId.matches('^recruiter_.*'));
     }
 
     // ───────────────────────────────────────────────
@@ -55,7 +56,8 @@ service cloud.firestore {
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
 
       // The owner can delete their own user document (used during cascade deletion)
-      allow delete: if isOwner(userId);
+      // HACKATHON: Allow deletion of seed users
+      allow delete: if isOwner(userId) || (isAuthenticated() && userId.matches('^(talent_|recruiter_).*'));
     }
   }
 }
