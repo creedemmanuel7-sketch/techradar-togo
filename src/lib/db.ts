@@ -24,6 +24,19 @@ export interface Opportunity extends OpportunityData {
 
 const OPPORTUNITIES_COLLECTION = "opportunities";
 
+export interface UserProfile {
+  id?: string;
+  name: string;
+  email: string;
+  role: "talent" | "recruiter";
+  photoURL?: string;
+  bio?: string;
+  location?: string;
+  skills?: string;
+  savedOpportunities?: string[];
+  createdAt?: number;
+}
+
 export async function addOpportunity(data: OpportunityData): Promise<string> {
   try {
     const docRef = await addDoc(collection(db, OPPORTUNITIES_COLLECTION), {
@@ -220,5 +233,44 @@ export async function deleteUserData(uid: string): Promise<void> {
   } catch (error) {
     console.error("Error deleting user data: ", error);
     throw error;
+  }
+}
+
+/**
+ * Fetches all users with the role "talent".
+ */
+export async function getTalents(): Promise<UserProfile[]> {
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("role", "==", "talent")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    let talents: UserProfile[] = [];
+    
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      talents.push({
+        id: docSnap.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        photoURL: data.photoURL,
+        bio: data.bio,
+        location: data.location,
+        skills: data.skills,
+        savedOpportunities: data.savedOpportunities,
+        createdAt: data.createdAt,
+      });
+    });
+    
+    // Sort locally to avoid requiring a composite index in Firestore
+    talents.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    return talents;
+  } catch (error) {
+    console.error("Error getting talents: ", error);
+    return [];
   }
 }

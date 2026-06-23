@@ -54,7 +54,10 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/explorer", label: "Explorer" },
-    { href: "/soumettre", label: "Soumettre" },
+    ...(profile?.role === "recruiter" ? [
+      { href: "/talents", label: "Talents" },
+      { href: "/soumettre", label: "Publier", mobileOnly: true }
+    ] : []),
   ];
 
   return (
@@ -76,7 +79,7 @@ export default function Navbar() {
 
           {/* DESKTOP NAV */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {navLinks.filter(l => !l.mobileOnly).map((link) => (
               <a
                 key={link.href}
                 href={link.href}
