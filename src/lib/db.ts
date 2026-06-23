@@ -167,6 +167,17 @@ export async function deleteOpportunity(id: string): Promise<void> {
     throw error;
   }
 }
+
+export async function updateOpportunity(id: string, data: Partial<OpportunityData>): Promise<void> {
+  try {
+    const docRef = doc(db, OPPORTUNITIES_COLLECTION, id);
+    await updateDoc(docRef, { ...data });
+  } catch (error) {
+    console.error("Error updating opportunity: ", error);
+    throw error;
+  }
+}
+
 export async function toggleSavedOpportunity(uid: string, opportunityId: string, isSaving: boolean): Promise<void> {
   try {
     const userRef = doc(db, "users", uid);

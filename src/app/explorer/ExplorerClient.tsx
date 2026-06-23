@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { getFilteredOpportunities, Opportunity } from "@/lib/db";
@@ -13,59 +14,39 @@ interface ExplorerClientProps {
   initialOpportunities: Opportunity[];
 }
 
+// SWR fetcher function
+const fetchOpps = async (key: string): Promise<Opportunity[]> => {
+  // Parse the key format: "opportunities|type|domain"
+  const [, type, domain] = key.split("|");
+  const { data } = await getFilteredOpportunities({ type, domain }, 12, null);
+  return data;
+};
+
 export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
   const [activeType, setActiveType] = useState("Tous");
   const [activeDomain, setActiveDomain] = useState("Tous");
   const [searchQuery, setSearchQuery] = useState("");
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(initialOpportunities);
-  const [loading, setLoading] = useState(false); // Faux au départ car on a initialOpportunities
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [extraOpps, setExtraOpps] = useState<Opportunity[]>([]);
   const [lastVisible, setLastVisible] = useState<any>(null);
   const [hasMore, setHasMore] = useState(initialOpportunities.length === 12);
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [isFirstRender, setIsFirstRender] = useState(true);
 
-  const fetchOpps = async (isLoadMore = false) => {
-    try {
-      if (isLoadMore) setIsFetchingMore(true);
-      else setLoading(true);
-      
-      const { data, lastDoc } = await getFilteredOpportunities(
-        { type: activeType, domain: activeDomain },
-        12,
-        isLoadMore ? lastVisible : null
-      );
-      
-      if (isLoadMore) {
-        setOpportunities(prev => [...prev, ...data]);
-      } else {
-        setOpportunities(data);
-      }
-      setLastVisible(lastDoc);
+  // SWR: fetches from Firestore and caches the result.
+  // On focus, it revalidates silently so the user always sees fresh data.
+  const swrKey = `opportunities|${activeType}|${activeDomain}`;
+  const { data: swrData, isLoading: loading } = useSWR(swrKey, fetchOpps, {
+    fallbackData: initialOpportunities, // SSR data hydrates instantly
+    revalidateOnFocus: true,
+    onSuccess: (data) => {
+      // Reset extra (pagination) results when filters change
+      setExtraOpps([]);
+      setLastVisible(null);
       setHasMore(data.length === 12);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-      setIsFetchingMore(false);
-    }
-  };
+    },
+  });
 
-  useEffect(() => {
-    if (isFirstRender) {
-      // Chargement silencieux initial pour récupérer le lastDoc pour la pagination
-      const fetchInitialDoc = async () => {
-        const { data, lastDoc } = await getFilteredOpportunities({ type: activeType, domain: activeDomain }, 12, null);
-        setOpportunities(data);
-        setLastVisible(lastDoc);
-        setHasMore(data.length === 12);
-      };
-      fetchInitialDoc();
-      setIsFirstRender(false);
-    } else {
-      fetchOpps(false);
-    }
-  }, [activeType, activeDomain]);
+  const opportunities = [...(swrData ?? initialOpportunities), ...extraOpps];
 
   const filteredOpps = opportunities.filter(opp => {
     const matchSearch = !searchQuery || 
@@ -291,7 +272,24 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                 {hasMore && (
                   <div className="mt-12 flex justify-center pb-12">
                     <button
-                      onClick={() => fetchOpps(true)}
+                      onClick={async () => {
+                        setIsFetchingMore(true);
+                        try {
+                          const cursor = lastVisible;
+                          const { data, lastDoc } = await getFilteredOpportunities(
+                            { type: activeType, domain: activeDomain },
+                            12,
+                            cursor
+                          );
+                          setExtraOpps(prev => [...prev, ...data]);
+                          setLastVisible(lastDoc);
+                          setHasMore(data.length === 12);
+                        } catch (e) {
+                          console.error(e);
+                        } finally {
+                          setIsFetchingMore(false);
+                        }
+                      }}
                       disabled={isFetchingMore}
                       className="glass glass-pill px-6 py-3 flex items-center gap-2 text-sm font-bold hover:bg-white/10 transition-all group"
                     >

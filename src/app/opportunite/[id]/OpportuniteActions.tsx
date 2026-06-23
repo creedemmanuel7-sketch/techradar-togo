@@ -5,7 +5,8 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { toggleSavedOpportunity, deleteOpportunity, Opportunity } from "@/lib/db";
-import { Share2, Heart, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { Share2, Heart, Trash2, Loader2, ExternalLink, Pencil } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -117,14 +118,23 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
       </div>
       
       {user?.uid === opp.publisherId && (
-        <button 
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-all text-sm font-medium mt-1"
-        >
-          {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-          Supprimer l'offre
-        </button>
+        <div className="flex flex-col gap-2 mt-1">
+          <Link
+            href={`/opportunite/${opp.id}/modifier`}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#C9A84C]/10 hover:bg-[#C9A84C]/20 border border-[#C9A84C]/30 text-[#C9A84C] transition-all text-sm font-medium"
+          >
+            <Pencil className="w-4 h-4" />
+            Modifier l'offre
+          </Link>
+          <button 
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-all text-sm font-medium"
+          >
+            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            Supprimer l'offre
+          </button>
+        </div>
       )}
     </div>
   );
