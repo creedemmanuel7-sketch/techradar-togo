@@ -4,7 +4,6 @@ import { useEffect, useState, useRef, use } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getOpportunities, Opportunity, deleteOpportunity, deleteUserData } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap, Trash2, AlertTriangle, Database } from "lucide-react";
@@ -95,24 +94,33 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dépasser 5 Mo.");
+    if (file.size > 800 * 1024) {
+      toast.error("Pour la démo, l'image ne doit pas dépasser 800 Ko.");
       return;
     }
 
     setUploadingPhoto(true);
     try {
-      const storage = getStorage();
-      const storageRef = ref(storage, `avatars/${uid}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-      await updateDoc(doc(db, "users", uid), { photoURL: downloadURL });
-      setProfile((prev) => prev ? { ...prev, photoURL: downloadURL } : prev);
-      toast.success("Photo de profil mise à jour !");
+      // Pour éviter le blocage "Blaze Plan" de Firebase Storage, on convertit l'image en Base64
+      // et on la sauvegarde directement dans Firestore (limite 1 Mo par document).
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        try {
+          await updateDoc(doc(db, "users", uid), { photoURL: base64String });
+          setProfile((prev) => prev ? { ...prev, photoURL: base64String } : prev);
+          toast.success("Photo de profil mise à jour !");
+        } catch (err) {
+          console.error("Firestore update failed:", err);
+          toast.error("Erreur lors de la sauvegarde de la photo.");
+        } finally {
+          setUploadingPhoto(false);
+        }
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error("Upload failed:", err);
-      toast.error("Erreur lors du téléchargement de la photo.");
-    } finally {
+      toast.error("Erreur lors du traitement de la photo.");
       setUploadingPhoto(false);
     }
   };
