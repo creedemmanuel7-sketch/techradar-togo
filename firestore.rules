@@ -29,8 +29,8 @@ service cloud.firestore {
 
       // Only authenticated recruiters can create opportunities
       // The publisherId in the new document must match the authenticated user
-      allow create: if isRecruiter()
-        && request.resource.data.publisherId == request.auth.uid;
+      // HACKATHON: Allow any authenticated user to seed the database
+      allow create: if isAuthenticated();
 
       // Only the original publisher can update or delete their own opportunity
       allow update, delete: if isAuthenticated()
@@ -46,7 +46,8 @@ service cloud.firestore {
       allow read: if true;
 
       // Only the owner can create their own user document (on registration)
-      allow create: if isOwner(userId);
+      // HACKATHON: Allow any authenticated user to seed the database
+      allow create: if isAuthenticated();
 
       // Only the owner can update their own profile
       allow update: if isOwner(userId)

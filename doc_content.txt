@@ -1,0 +1,182 @@
+LES PROS DE LA TECH  ×  CURSOR
+MEET-UP CHALLENGE #3
+Build for the Community
+72h pour construire une solution web ou mobile.
+Les 3 meilleurs présentent en live le 27 Juin 2026.
+Tech Meetup #5  ·  Samedi 27 Juin 2026  ·  Lomé, Togo
+Document réservé aux participants  ·  Usage interne
+01 — QU'EST-CE QUE LE BUILD FOR THE COMMUNITY ?
+Le Meet-Up Challenge #3 est le challenge le plus ambitieux de la Tech Meetup #5. Propulsé par Cursor, il t'invite à construire une solution concrète en 72 heures — seul ou en équipe — qui répond à un problème réel de la communauté tech.
+Ce n'est pas un exercice académique. C'est un acte de construction.
+PROPULSÉ PAR CURSOR
+Cursor est l'éditeur de code propulsé par l'IA, conçu pour te faire coder plus vite et mieux. Dans ce challenge, tu es encouragé à utiliser Cursor comme outil principal de développement. Pas obligatoire — mais fortement recommandé.
+En résumé
+Quoi
+Construire une solution web ou mobile qui résout un problème réel de la communauté tech togolaise
+Durée
+72 heures à partir du lancement du challenge
+Récompense
+Les 3 meilleurs projets présentent en live le 27 Juin devant 200 personnes
+Partenaire
+Cursor — éditeur de code IA
+Niveau requis
+Tous niveaux — un prototype fonctionnel suffit. Le jury évalue l'idée, l'impact et l'exécution.
+02 — LES PROBLÈMES À RÉSOUDRE
+Ces problèmes ont été identifiés lors d'une session de travail réunissant les responsables des principales communautés tech de Lomé. Ils sont réels, documentés, et non résolus.
+TON RÔLE EN TANT QUE PARTICIPANT
+Tu n'as pas à résoudre tous ces problèmes. Choisis-en un — celui qui t'inspire le plus ou pour lequel tu as une idée de solution. L'originalité et la pertinence de ton approche comptent plus que la complexité technique.
+#01  
+Stagnation technique et manque de culture de recherche
+Les communautés tech togolaises progressent peu techniquement et se comparent rarement aux standards internationaux. Il n'existe pas de mécanisme structuré de montée en compétences au sein des communautés, ce qui freine leur évolution collective.
+#02  
+Ni accessible aux débutants, ni adaptée aux expérimentés
+Les communautés sont dans un entre-deux : trop avancées pour retenir les débutants, pas assez exigeantes pour garder les profils expérimentés. Résultat : faible engagement durable des deux côtés.
+#03  
+Chevauchement des calendriers et difficulté de financement
+Les événements des différentes communautés se superposent fréquemment, forçant les membres à choisir. Par ailleurs, la dépendance aux activités gratuites rend la pérennisation des communautés très difficile.
+#04  
+Manque de connexion entre les talents et les entreprises
+Les entreprises peinent à trouver les bons profils tech dans l'écosystème local, et les talents issus des communautés manquent de visibilité auprès des recruteurs et des organisations.
+#05  
+Manque d'information sur les opportunités disponibles
+Les membres des communautés tech ne sont pas informés à temps des opportunités professionnelles, événementielles ou de formation qui leur seraient accessibles. L'information circule mal entre les acteurs de l'écosystème.
+#06  
+Disponibilité et accès technique
+Les problèmes de connexion internet et l'indisponibilité fréquente des membres aux horaires prévus impactent la participation et la régularité des activités communautaires.
+#07  
+Absence de vision claire et de cap partagé
+Plusieurs communautés fonctionnent sans objectifs définis ni vision articulée. Il manque un espace de réflexion collective sur la direction à prendre — et les profils seniors ne jouent pas toujours leur rôle de transmission.
+#08  
+Participation instrumentale et création de communautés par effet de mode
+Certains membres rejoignent les communautés pour les avantages immédiats (collations, événements gratuits) sans s'investir durablement. Parallèlement, de nouvelles communautés naissent par mimétisme plutôt que par réelle volonté de construire quelque chose.
+PROBLÈME NON LISTÉ ?
+Si tu identifies un autre problème de la communauté tech locale non mentionné ici, tu peux tout à fait le traiter — à condition qu'il soit réel, documenté et que tu puisses l'expliquer au jury. L'initiative est valorisée.
+03 — PISTES DE RÉFLEXION
+Ces pistes ne sont pas des solutions. Ce sont des directions de réflexion pour t'aider à cadrer ton projet
+. La solution, c'est toi qui la trouves
+.
+Axe 1 — Améliorer l'expérience de la Tech Meetup
+Comment rendre l'événement plus utile, plus mémorable, plus connecté pour ses participants ?
+Un outil de networking intelligent qui met en relation les participants selon leurs profils et besoins avant ou pendant l'événement
+Une application de feedback en temps réel pendant les talks — questions, réactions, votes
+Un système de suivi post-événement : ressources des talks, mise en contact entre participants, opportunités générées
+Un agenda interactif personnalisé selon les centres d'intérêt du participant
+Axe 2 — Connecter les talents aux opportunités
+Comment rendre les opportunités plus visibles et les talents plus accessibles dans l'écosystème ?
+Une plateforme de centralisation des opportunités tech à Lomé (stages, emplois, événements, formations)
+Un outil de mise en relation entre talents et recruteurs avec portfolio visible
+Un agrégateur des événements des communautés tech togolaises pour éviter les chevauchements
+Un système d'alertes personnalisées sur les opportunités selon le profil de l'utilisateur
+Axe 3 — Structurer et renforcer les communautés
+Comment aider les communautés à mieux fonctionner, progresser et s'organiser ?
+Un outil de suivi de progression pour les membres de communautés (compétences, contributions, badges)
+Une plateforme de partage de ressources pédagogiques entre communautés tech
+Un tableau de bord de santé communautaire : engagement, activité, croissance
+Un outil de gestion et planification d'événements communautaires collaboratifs
+LIBERTÉ TOTALE
+Ces axes sont indicatifs. Tu peux combiner plusieurs problèmes, proposer une solution dans un domaine non listé, ou partir d'une observation personnelle. Ce qui compte : un vrai problème, une solution concrète, un prototype qui fonctionne.
+0
+Qui peut participer ?
+Toute personne inscrite à la Tech Meetup #5 
+Lien d’inscription
+Participation individuelle ou en équipe (2-3 personnes maximum)
+Tous niveaux — débutant, intermédiaire, avancé
+Tous profils — développeur, designer, PM, entrepreneur
+Ce que tu dois construire
+Une solution web ou mobile — prototype ou MVP fonctionnel
+La solution doit répondre à un problème réel identifié dans ce document ou un autre problème de la communauté tech que tu peux justifier
+Le projet doit être original — pas un projet existant rebrandé
+Comment soumettre ton projet
+La soumission se fait via un formulaire officiel partagé au lancement du challenge. Tu devras y déposer les éléments suivants :
+Élément requis
+Détail
+🔗 Lien GitHub
+Dépôt public avec le code source. Le jury vérifiera l'historique des commits pour confirmer que le projet a bien été construit durant les 72h.
+🚀 Lien Vercel
+Déploiement accessible en ligne via Vercel ou toute autre plateforme (Netlify, Railway, etc.). Le projet doit fonctionner au moment de la soumission.
+🎥 Vidéo de démo (optionnel)
+1min30 à 2min minutes présentant le problème, la solution et une démo. Fortement recommandé pour maximiser ta note jury.
+Screencast accepté
+📌 Lien publication LinkedIn
+Lien vers ta publication avec #BuildForTheCommunity + #TechMeetup5 + tag LPT. Compte pour 40% de la note.
+⚠️ GITHUB + VERCEL OBLIGATOIRES
+Les deux liens sont non-négociables. Un projet sans dépôt GitHub public ou sans démo déployée ne sera pas évalué par le jury.
+PUBLICATION LINKEDIN OBLIGATOIRE
+Publie ton projet sur LinkedIn avec le hashtag #BuildForTheCommunity et #TechMeetup5, et tague Les Pros de la Tech. Cette publication compte pour 40% de ta note (interaction communautaire).
+Récompenses
+🏆 COMMENT EST DÉSIGNÉ LE GRAND GAGNANT
+Le jury LPT + Cursor sélectionne les 3 finalistes en amont. Le 27 Juin, les 3 finalistes présentent leur projet en live. Le PUBLIC présent dans la salle vote pour désigner le grand gagnant parmi les trois.
+Rang
+Désigné par
+Récompense
+🥇 1er
+Vote du public le 27 Juin
+Cursor Pro — 2 mois d'abonnement + Goodies Cursor (pack complet)
+🥈 2e
+Sélection jury
+Goodies Cursor
+🥉 3e
+Sélection jury
+Goodies Cursor
+Les récompenses sont remises en direct le 27 Juin après le vote du public. Pour les recevoir, il faut être présent dans la salle.
+Critères d'évaluation — Sélection des 3 finalistes
+Critère
+Poids
+Ce que le jury évalue
+Jury LPT + Cursor
+60%
+Pertinence du problème · Qualité de la solution · Fonctionnalité · Potentiel d'impact · Historique GitHub réel
+Engagement post LinkedIn
+40%
+Likes + commentaires + partages sur ta publication de présentation du projet
+Timeline
+Étape
+Détail
+Lancement du challenge
+Jour de publication — le compteur 72h démarre immédiatement
+Clôture des soumissions
+72h après le lancement — via le formulaire officiel partagé au lancement
+Vérification jury
+LPT + Cursor vérifient GitHub, Vercel, publications LinkedIn
+Annonce des 3 finalistes
+Les 3 projets sélectionnés sont contactés directement avant le 27 Juin
+Présentation live + vote public
+Samedi 27 Juin 2026 — Tech Meetup #5 · Lomé · Devant 200 personnes
+Remise des récompenses
+Immédiatement après le vote — en direct devant la salle
+05 — LA PRÉSENTATION LIVE LE 27 JUIN
+Les 3 meilleurs projets sélectionnés par le jury auront l'opportunité de présenter leur solution en live devant l'audience complète de la Tech Meetup #5.
+CE QUE ÇA REPRÉSENTE
+200 personnes. Une scène. Un micro. Une vraie audience composée de développeurs, designers, PMs, recruteurs et acteurs de l'écosystème tech de Lomé. C'est une vitrine réelle pour ton projet et pour toi.
+Format de la présentation
+Durée : 5 minutes de présentation + 2 minutes de questions
+Support : démo live de ta solution (ordinateur connecté au projecteur) ou vidéo si démo impossible
+Structure recommandée : Problème identifié → Solution construite → Démo → Impact potentiel
+Équipe : tous les membres peuvent monter sur scène
+Ce que le public verra
+Ton projet fonctionner en temps réel
+Ta capacité à expliquer un problème complexe simplement
+Ce que tu as construit en 72h — et comment
+CONSEIL
+Ne cherche pas à construire quelque chose de parfait. Construis quelque chose qui fonctionne et qui raconte une histoire. Le jury et le public veulent voir que tu as compris le problème — la finition technique vient après.
+06 — CHECKLIST AVANT SOUMISSION
+À vérifier avant de soumettre
+☐
+Mon projet répond à un problème réel identifié dans ce document (ou justifiable)
+☐
+Mon prototype est fonctionnel — au moins les fonctionnalités principales marchent
+☐
+J'ai un lien GitHub public OU une vidéo de démo (ou les deux)
+☐
+J'ai publié mon projet sur LinkedIn avec #BuildForTheCommunity + #TechMeetup5 + tag LPT
+☐
+Ma publication LinkedIn est publique et accessible à tous
+☐
+Je suis inscrit(e) à la 
+Tech Meetup #5
+ et disponible le 27 Juin (en cas de sélection)
+Des questions sur le challenge ?
+Contacte l'équipe LPT directement via WhatsApp :
+ +228 97427182.
+LES PROS DE LA TECH  ·  RUDORE & Co  ·  Tech Meetup #5  ·  27 Juin 2026  ·  Lomé, Togo
+Code. Create. Connect.

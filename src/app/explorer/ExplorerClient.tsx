@@ -9,6 +9,11 @@ import { TYPE_FILTER_OPTIONS, DOMAIN_FILTER_OPTIONS } from "@/lib/constants";
 import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useEffect } from "react";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { calculateMatchScore } from "@/lib/match";
 
 interface ExplorerClientProps {
   initialOpportunities: Opportunity[];
@@ -46,6 +51,24 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     },
   });
 
+  const [userSkills, setUserSkills] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            setUserSkills(userDoc.data().skills);
+          }
+        } catch (e) {}
+      } else {
+        setUserSkills(undefined);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const opportunities = [...(swrData ?? initialOpportunities), ...extraOpps];
 
   const filteredOpps = opportunities.filter(opp => {
@@ -55,6 +78,11 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
       opp.domain.toLowerCase().includes(searchQuery.toLowerCase());
     return matchSearch;
   });
+
+  const oppsWithMatch = filteredOpps.map(opp => ({
+    ...opp,
+    matchScore: userSkills ? calculateMatchScore(userSkills, `${opp.title} ${opp.description || ""} ${opp.domain}`) : 0
+  })).sort((a, b) => b.matchScore - a.matchScore);
 
   const SidebarContent = () => (
     <div className="w-full">
@@ -119,7 +147,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
             <div>
               <h1 className="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight">Le Radar</h1>
               <p className="text-white/50 text-sm md:text-base">
-                {loading ? "Recherche en cours..." : `${filteredOpps.length} opportunité${filteredOpps.length > 1 ? "s" : ""} trouvée${filteredOpps.length > 1 ? "s" : ""}`}
+                {loading ? "Recherche en cours..." : `${oppsWithMatch.length} opportunité${oppsWithMatch.length > 1 ? "s" : ""} trouvée${oppsWithMatch.length > 1 ? "s" : ""}`}
               </p>
             </div>
             <button
@@ -218,7 +246,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
               <>
                 <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   <AnimatePresence>
-                    {filteredOpps.map((opp) => (
+                    {oppsWithMatch.map((opp) => (
                       <motion.div
                         key={opp.id}
                         layout
@@ -229,8 +257,22 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                       >
                         <Link href={`/opportunite/${opp.id}`} className="block h-full group">
                           <GlassCard hoverEffect className="flex flex-col h-full cursor-pointer">
-                            <div className="flex justify-between items-start mb-5">
+                            <div className="flex justify-between items-start mb-5 relative">
                               <CategoryBadge type={opp.type} label={opp.typeLabel} />
+                              
+                              {/* Match Badge */}
+                              {userSkills && opp.matchScore > 0 && (
+                                <div className="absolute left-1/2 -translate-x-1/2 top-0">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg ${
+                                    opp.matchScore >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
+                                    opp.matchScore >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
+                                    "bg-white/10 text-white/60 border-white/10"
+                                  }`}>
+                                    Match : {opp.matchScore}%
+                                  </span>
+                                </div>
+                              )}
+
                               <button
                                 onClick={(e) => e.preventDefault()}
                                 className="bg-white/5 hover:bg-white/15 p-2 rounded-full transition-colors"
@@ -303,7 +345,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                   </div>
                 )}
 
-                {filteredOpps.length === 0 && (
+                {oppsWithMatch.length === 0 && (
                   <div className="w-full py-24 text-center">
                     <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Search className="w-8 h-8 text-white/20" />

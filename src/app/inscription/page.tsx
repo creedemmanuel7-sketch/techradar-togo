@@ -183,9 +183,9 @@ export default function InscriptionPage() {
 
             <div className="pt-4">
               <GlassButton
+                type="submit"
                 variant="primary"
                 className="w-full py-4 text-lg bg-gradient-to-r from-[#C9A84C]/80 to-[#F5E6A3]/80 hover:from-[#C9A84C] hover:to-[#F5E6A3] text-black border-none font-bold"
-                onClick={() => {}}
               >
                 {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Créer mon compte"}
               </GlassButton>
