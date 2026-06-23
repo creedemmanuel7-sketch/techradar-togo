@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle, Radar } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 interface UserProfile {
   name: string;
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -78,7 +80,11 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+                  pathname === link.href
+                    ? "text-white bg-white/8 font-semibold"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
               >
                 {link.label}
               </a>
@@ -89,13 +95,16 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {user && profile ? (
               <>
-                <a
-                  href="/soumettre"
-                  className="flex items-center gap-2 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-4 py-2 rounded-xl text-sm hover:opacity-90 transition-opacity"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  Publier
-                </a>
+                {/* F-4 : Bouton Publier visible uniquement pour les recruteurs */}
+                {profile.role === "recruiter" && (
+                  <a
+                    href="/soumettre"
+                    className="flex items-center gap-2 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-4 py-2 rounded-xl text-sm hover:opacity-90 transition-opacity"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Publier
+                  </a>
+                )}
 
                 {/* USER MENU */}
                 <div className="relative">

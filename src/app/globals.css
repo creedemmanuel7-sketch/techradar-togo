@@ -142,3 +142,40 @@ body {
 .text-gradient-white {
   background-image: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.6) 100%);
 }
+
+/* ─── ACCESSIBILITÉ ─────────────────────────────────────── */
+
+/* F-1 : Focus visible pour la navigation clavier (WCAG 2.4.7) */
+/* outline:none est retiré seulement pour les clics souris, pas pour le clavier */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid #C9A84C;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* F-3 : Respect de la préférence système "Réduire les animations" (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bg-orb {
+    animation: none !important;
+  }
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+

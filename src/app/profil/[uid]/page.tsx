@@ -36,6 +36,8 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -114,10 +116,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = confirm(
-      `⚠️ Attention ! Cette action est irréversible.\n\nElle supprimera définitivement :\n- Votre compte\n- Toutes vos offres publiées\n\nTapez OK pour confirmer.`
-    );
-    if (!confirmed) return;
+    if (deleteConfirmText !== "SUPPRIMER") return;
 
     setIsDeletingAccount(true);
     try {
@@ -134,6 +133,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
       // Firebase may require recent login before deleting an auth account
       if (error?.code === "auth/requires-recent-login") {
         toast.error("Sécurité : veuillez vous déconnecter, vous reconnecter, puis réessayer.");
+        setShowDeleteModal(false);
       } else {
         toast.error("Erreur lors de la suppression du compte.");
         console.error(error);
@@ -220,32 +220,48 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
             <div className="flex-1 min-w-0">
               {isEditing ? (
                 <div className="space-y-4">
-                  <input
-                    value={editData.name || ""}
-                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-2xl font-bold text-white outline-none focus:border-[#C9A84C]/50"
-                    placeholder="Ton nom complet"
-                  />
-                  <textarea
-                    value={editData.bio || ""}
-                    onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                    rows={3}
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white/80 outline-none focus:border-[#C9A84C]/50 resize-none placeholder-white/30"
-                    placeholder="Décris-toi en quelques mots... (ex: Développeur React passionné, 3 ans d'exp.)"
-                  />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label htmlFor="edit-name" className="text-sm font-semibold text-white/70 ml-1">Nom complet</label>
                     <input
-                      value={editData.location || ""}
-                      onChange={(e) => setEditData({ ...editData, location: e.target.value })}
-                      className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
-                      placeholder="📍 Ville (ex: Lomé)"
+                      id="edit-name"
+                      value={editData.name || ""}
+                      onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-2xl font-bold text-white outline-none focus:border-[#C9A84C]/50"
+                      placeholder="Ton nom complet"
                     />
-                    <input
-                      value={editData.skills || ""}
-                      onChange={(e) => setEditData({ ...editData, skills: e.target.value })}
-                      className="bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
-                      placeholder="🛠️ Compétences (ex: React, Node)"
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="edit-bio" className="text-sm font-semibold text-white/70 ml-1">Bio</label>
+                    <textarea
+                      id="edit-bio"
+                      value={editData.bio || ""}
+                      onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
+                      rows={3}
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white/80 outline-none focus:border-[#C9A84C]/50 resize-none placeholder-white/30"
+                      placeholder="Décris-toi en quelques mots... (ex: Développeur React passionné, 3 ans d'exp.)"
                     />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label htmlFor="edit-location" className="text-sm font-semibold text-white/70 ml-1">Ville</label>
+                      <input
+                        id="edit-location"
+                        value={editData.location || ""}
+                        onChange={(e) => setEditData({ ...editData, location: e.target.value })}
+                        className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
+                        placeholder="📍 ex: Lomé"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="edit-skills" className="text-sm font-semibold text-white/70 ml-1">Compétences</label>
+                      <input
+                        id="edit-skills"
+                        value={editData.skills || ""}
+                        onChange={(e) => setEditData({ ...editData, skills: e.target.value })}
+                        className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C9A84C]/50 placeholder-white/30"
+                        placeholder="🛠️ ex: React, Node"
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -301,35 +317,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
           </div>
         </motion.div>
 
-        {/* DANGER ZONE — only visible to the account owner */}
-        {isOwner && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-8 rounded-3xl border border-red-500/20 bg-red-500/5 p-6"
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-bold text-red-400 text-sm">Supprimer mon compte</p>
-                  <p className="text-white/40 text-xs mt-0.5">
-                    Irréversible. Supprime votre profil et toutes vos offres publiées.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={isDeletingAccount}
-                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all text-sm font-bold"
-              >
-                {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                Supprimer mon compte
-              </button>
-            </div>
-          </motion.div>
-        )}
+        {/* DANGER ZONE moved to the bottom (H-2) */}
 
         {/* TABS */}
         {isOwner && (
@@ -374,7 +362,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
                         {isOwner && (
                           <button
                             onClick={(e) => handleDeleteOpp(e, opp.id)}
-                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
+                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                             title="Supprimer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -418,7 +406,78 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
             )
           )}
         </div>
+
+        {/* DANGER ZONE — only visible to the account owner, at the bottom */}
+        {isOwner && (
+          <div className="mt-16 pt-8 border-t border-red-500/10">
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-2xl bg-red-500/10 flex-shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-red-400 text-lg mb-1">Zone de danger</p>
+                    <p className="text-white/50 text-sm max-w-md">
+                      Une fois votre compte supprimé, toutes vos données et vos offres publiées seront effacées définitivement. Cette action est irréversible.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all text-sm font-bold"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Supprimer le compte
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => !isDeletingAccount && setShowDeleteModal(false)} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass rounded-3xl p-8 w-full max-w-md relative z-10 border-red-500/30"
+          >
+            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mb-4 text-red-400">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Supprimer définitivement ?</h3>
+            <p className="text-white/60 text-sm mb-6 leading-relaxed">
+              Cette action supprimera votre profil et toutes vos offres du Radar. Tapez <span className="font-mono text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded">SUPPRIMER</span> pour confirmer.
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="SUPPRIMER"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-center font-mono focus:border-red-500/50 outline-none mb-6"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeletingAccount}
+                className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/5 transition-all text-sm font-medium"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== "SUPPRIMER" || isDeletingAccount}
+                className="flex-1 px-4 py-3 rounded-xl bg-red-500 text-white font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmer"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
