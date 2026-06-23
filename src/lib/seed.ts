@@ -1,4 +1,4 @@
-import { collection, addDoc, setDoc, doc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc, Timestamp, getDocs, deleteDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { UserProfile, OpportunityData } from "./db";
 
@@ -8,10 +8,26 @@ function generateId() {
 }
 
 export async function seedDatabase() {
-  console.log("Starting database seeding...");
+  console.log("Starting database seeding & cleanup...");
 
-  // 1. Seed Talents (Users)
-  const talents: UserProfile[] = [
+  try {
+    // 0. CLEANUP OLD DATA
+    console.log("Cleaning old opportunities...");
+    const oppsSnap = await getDocs(collection(db, "opportunities"));
+    const deleteOpps = oppsSnap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(deleteOpps);
+    
+    console.log("Cleaning old seed users...");
+    const usersSnap = await getDocs(collection(db, "users"));
+    const deleteUsers = usersSnap.docs
+      .filter(d => d.id.startsWith("talent_") || d.id.startsWith("recruiter_"))
+      .map(d => deleteDoc(d.ref));
+    await Promise.all(deleteUsers);
+    
+    console.log("Cleanup done. Injecting new data...");
+
+    // 1. Seed Talents (Users)
+    const talents: UserProfile[] = [
     {
       name: "Edem Kodjo",
       email: "edem.k@example.tg",
@@ -96,15 +112,14 @@ export async function seedDatabase() {
 
   // 2. Seed Recruiters (To own some opportunities)
   const recruiterId = "recruiter_" + generateId();
-  const recruiter: UserProfile = {
-    name: "Agence PayGo",
-    email: "rh@paygo.tg",
-    role: "recruiter",
-    location: "Lomé, Togo",
-    createdAt: Date.now(),
-  };
+    const recruiter: UserProfile = {
+      name: "Agence PayGo",
+      email: "rh@paygo.tg",
+      role: "recruiter",
+      location: "Lomé, Togo",
+      createdAt: Date.now(),
+    };
 
-  try {
     // Add Recruiter
     await setDoc(doc(db, "users", recruiterId), recruiter);
 
