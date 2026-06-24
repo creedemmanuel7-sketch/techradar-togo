@@ -75,6 +75,14 @@ export async function addOpportunity(data: OpportunityData): Promise<string> {
       views: 0,
       createdAt: Timestamp.now(),
     });
+
+    // Sync to Algolia
+    fetch('/api/sync-opportunity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opportunityId: docRef.id })
+    }).catch(console.error);
+
     return docRef.id;
   } catch (error) {
     console.error("Error adding opportunity: ", error);
@@ -221,9 +229,17 @@ export async function getOpportunityById(id: string): Promise<Opportunity | null
   }
 }
 
-export async function deleteOpportunity(id: string): Promise<void> {
+/** Deletes an opportunity permanently (Admin only) */
+export async function deleteOpportunity(opportunityId: string): Promise<void> {
   try {
-    await deleteDoc(doc(db, OPPORTUNITIES_COLLECTION, id));
+    await deleteDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId));
+
+    // Sync to Algolia
+    fetch('/api/sync-opportunity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opportunityId })
+    }).catch(console.error);
   } catch (error) {
     console.error("Error deleting opportunity: ", error);
     throw error;
@@ -476,6 +492,13 @@ export async function updateApplicationStatus(applicationId: string, status: App
 export async function closeOpportunity(opportunityId: string): Promise<void> {
   try {
     await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), { status: "closed" });
+    
+    // Sync to Algolia
+    fetch('/api/sync-opportunity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opportunityId })
+    }).catch(console.error);
   } catch (error) {
     console.error("Error closing opportunity: ", error);
     throw error;
@@ -486,6 +509,13 @@ export async function closeOpportunity(opportunityId: string): Promise<void> {
 export async function openOpportunity(opportunityId: string): Promise<void> {
   try {
     await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), { status: "open" });
+
+    // Sync to Algolia
+    fetch('/api/sync-opportunity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opportunityId })
+    }).catch(console.error);
   } catch (error) {
     console.error("Error reopening opportunity: ", error);
     throw error;

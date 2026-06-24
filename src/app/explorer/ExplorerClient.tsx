@@ -15,6 +15,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { calculateMatchScore } from "@/lib/match";
 import { Bell } from "lucide-react";
+import { searchClient, INDEX_NAME } from "@/lib/algolia";
 
 interface ExplorerClientProps {
   initialOpportunities: Opportunity[];
@@ -84,19 +85,90 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     return () => unsub();
   }, []);
 
+  const [algoliaResults, setAlgoliaResults] = useState<Opportunity[] | null>(null);
+  const [isSearchingAlgolia, setIsSearchingAlgolia] = useState(false);
+
+  // When searchQuery changes, query Algolia
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setAlgoliaResults(null);
+      return;
+    }
+
+    const searchAlgolia = async () => {
+      setIsSearchingAlgolia(true);
+      try {
+        const { results } = await searchClient.search({
+          requests: [
+            {
+              indexName: INDEX_NAME,
+              query: searchQuery,
+              hitsPerPage: 50,
+            }
+          ]
+        });
+        
+        if (results && results[0] && 'hits' in results[0]) {
+          const hits = results[0].hits as any[];
+          const mapped: Opportunity[] = hits.map(hit => ({
+            id: hit.objectID,
+            title: hit.title,
+            organization: hit.organization,
+            type: hit.type,
+            typeLabel: hit.typeLabel,
+            domain: hit.domain,
+            level: hit.level,
+            location: hit.location,
+            deadline: hit.deadline,
+            description: hit.description,
+            saves: hit.saves || 0,
+            applicantCount: hit.applicantCount || 0,
+            views: hit.views || 0,
+            createdAt: hit.createdAt,
+            status: hit.status || "open"
+          }));
+          setAlgoliaResults(mapped);
+        }
+      } catch (err) {
+        console.error("Algolia search error:", err);
+      } finally {
+        setIsSearchingAlgolia(false);
+      }
+    };
+
+    const delay = setTimeout(searchAlgolia, 300); // debounce 300ms
+    return () => clearTimeout(delay);
+  }, [searchQuery]);
+
   const rawOpportunities = swrData ?? initialOpportunities;
 
   // Deduplicate by ID to prevent React key warnings during SWR revalidation or pagination overlaps
   const oppsMap = new Map<string, Opportunity>();
-  rawOpportunities.forEach(opp => oppsMap.set(opp.id, opp));
+  
+  if (algoliaResults !== null) {
+    // If we have Algolia results, use them as the base
+    algoliaResults.forEach(opp => oppsMap.set(opp.id, opp));
+  } else {
+    // Otherwise use SWR/Initial
+    rawOpportunities.forEach(opp => oppsMap.set(opp.id, opp));
+  }
+  
   const opportunities = Array.from(oppsMap.values());
 
   const filteredOpps = opportunities.filter(opp => {
-    const matchSearch = !searchQuery || 
+    // If using Algolia, it already matched the text. We just apply the dropdown filters locally
+    // If NOT using Algolia (searchQuery empty), we don't have to check matchSearch.
+    // However, if we do have a search query but Algolia failed, fallback to local text search
+    const matchSearch = algoliaResults !== null || !searchQuery || 
       opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.domain.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchSearch;
+      
+    // Apply dropdown filters (type & domain) locally to the result set
+    const matchType = activeType === "Tous" || opp.type === activeType;
+    const matchDomain = activeDomain === "Tous" || opp.domain === activeDomain;
+    
+    return matchSearch && matchType && matchDomain;
   });
 
   const oppsWithMatch = filteredOpps.map(opp => {
