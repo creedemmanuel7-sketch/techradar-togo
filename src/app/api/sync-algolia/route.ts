@@ -47,8 +47,8 @@ export async function GET() {
     });
 
     return NextResponse.json({ ok: true, count: objects.length });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Sync error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }
