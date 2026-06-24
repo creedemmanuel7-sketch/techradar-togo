@@ -21,6 +21,10 @@ service cloud.firestore {
       return getUserData().role;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+
     function isRecruiter() {
       return isAuthenticated() && getUserRole() == 'recruiter';
     }
@@ -35,13 +39,13 @@ service cloud.firestore {
       allow read: if true;
 
       // Only authenticated recruiters can create an opportunity
-      // The publisherId must match their own UID
-      allow create: if isRecruiter()
-        && request.resource.data.publisherId == request.auth.uid;
+      // Admin can do everything
+      allow create: if isAdmin() || (isRecruiter()
+        && request.resource.data.publisherId == request.auth.uid);
 
       // Only the recruiter who owns the opportunity can update/delete it
-      allow update, delete: if isAuthenticated()
-        && resource.data.publisherId == request.auth.uid;
+      allow update, delete: if isAdmin() || (isAuthenticated()
+        && resource.data.publisherId == request.auth.uid);
     }
 
     // ─── USERS ───────────────────────────────────────────────────────────────
@@ -50,29 +54,29 @@ service cloud.firestore {
       allow read: if true;
 
       // Only the user themselves can write their own profile
-      allow write: if isOwner(userId);
+      allow write: if isAdmin() || isOwner(userId);
     }
 
     // ─── APPLICATIONS ────────────────────────────────────────────────────────
     match /applications/{applicationId} {
       // A talent can read their own applications
       // A recruiter can read applications for their opportunities
-      allow read: if isAuthenticated() && (
+      allow read: if isAdmin() || (isAuthenticated() && (
         resource.data.talentId == request.auth.uid ||
         resource.data.recruiterId == request.auth.uid
-      );
+      ));
 
       // Any authenticated talent can submit an application
       // Their talentId must match their own UID
-      allow create: if isTalent()
-        && request.resource.data.talentId == request.auth.uid;
+      allow create: if isAdmin() || (isTalent()
+        && request.resource.data.talentId == request.auth.uid);
 
       // Only the recruiter who owns the opportunity can update the status
-      allow update: if isAuthenticated()
-        && resource.data.recruiterId == request.auth.uid;
+      allow update: if isAdmin() || (isAuthenticated()
+        && resource.data.recruiterId == request.auth.uid);
 
-      // No deletion of applications (audit trail)
-      allow delete: if false;
+      // No deletion of applications (audit trail), except for admin
+      allow delete: if isAdmin();
     }
   }
 }

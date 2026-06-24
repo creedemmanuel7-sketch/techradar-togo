@@ -33,7 +33,7 @@ export interface UserProfile {
   id?: string;
   name: string;
   email: string;
-  role: "talent" | "recruiter";
+  role: "talent" | "recruiter" | "admin";
   photoURL?: string;
   bio?: string;
   location?: string;
@@ -491,3 +491,29 @@ export async function openOpportunity(opportunityId: string): Promise<void> {
     throw error;
   }
 }
+
+// --- ADMIN FUNCTIONS ───────────────────────────────────────────────────────
+
+export async function getAllUsers(): Promise<UserProfile[]> {
+  try {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    const users: UserProfile[] = [];
+    querySnapshot.forEach((docSnap) => {
+      users.push({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+    });
+    return users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } catch (error) {
+    console.error("Error getting all users: ", error);
+    return [];
+  }
+}
+
+export async function updateUserRole(userId: string, role: "talent" | "recruiter" | "admin"): Promise<void> {
+  try {
+    await updateDoc(doc(db, "users", userId), { role });
+  } catch (error) {
+    console.error("Error updating user role: ", error);
+    throw error;
+  }
+}
+
