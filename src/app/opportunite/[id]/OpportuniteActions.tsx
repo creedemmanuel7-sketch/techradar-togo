@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { 
   toggleSavedOpportunity, deleteOpportunity, submitApplication, 
-  closeOpportunity, openOpportunity, Opportunity, UserProfile 
+  closeOpportunity, openOpportunity, Opportunity, UserProfile,
+  incrementOpportunityViews
 } from "@/lib/db";
 import { Share2, Heart, Trash2, Loader2, Send, Pencil, CheckCircle2, Lock, Unlock } from "lucide-react";
 import Link from "next/link";
@@ -42,6 +43,14 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
   const [localStatus, setLocalStatus] = useState<"open" | "closed">(opp.status || "open");
 
   const router = useRouter();
+  const hasViewedRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasViewedRef.current) {
+      hasViewedRef.current = true;
+      incrementOpportunityViews(opp.id);
+    }
+  }, [opp.id]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {

@@ -1,6 +1,6 @@
 import { getOpportunityById } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { ArrowLeft, MapPin, Clock, Building2, Layers, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Building2, Layers, Users, Eye, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 import { OpportuniteActions } from "./OpportuniteActions";
@@ -82,9 +82,24 @@ export default async function OpportunitePage({ params }: { params: Promise<{ id
                     {opp.applicantCount} candidature{opp.applicantCount > 1 ? "s" : ""}
                   </span>
                 )}
+                {/* Views count */}
+                {(opp.views || 0) > 0 && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 text-white/40 border border-white/10">
+                    <Eye className="w-3 h-3" />
+                    {opp.views} vue{opp.views > 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 leading-tight">{opp.title}</h1>
-              <p className="text-[#C9A84C] text-xl font-bold">{opp.organization}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[#C9A84C] text-xl font-bold">{opp.organization}</p>
+                {opp.publisherIsVerified && (
+                  <span title="Recruteur vérifié" className="flex items-center gap-1 text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5 rounded-full text-xs font-semibold border border-[#C9A84C]/20">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Vérifié
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Client Component: Boutons Interactifs (Favoris, Partager, Supprimer, Postuler) */}

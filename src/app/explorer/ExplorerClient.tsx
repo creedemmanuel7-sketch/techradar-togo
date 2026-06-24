@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { getFilteredOpportunities, Opportunity } from "@/lib/db";
 import { TYPE_FILTER_OPTIONS, DOMAIN_FILTER_OPTIONS } from "@/lib/constants";
-import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock } from "lucide-react";
+import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -108,10 +108,10 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     return { ...opp, match };
   }).sort((a, b) => b.match.score - a.match.score);
 
-  // Pagination
+  // Load-more: show all items up to currentPage * PAGE_SIZE
   const totalPages = Math.ceil(oppsWithMatch.length / PAGE_SIZE);
   const paginatedOpps = oppsWithMatch.slice(
-    (currentPage - 1) * PAGE_SIZE,
+    0,
     currentPage * PAGE_SIZE
   );
 
@@ -351,7 +351,14 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                               <h3 className="text-lg font-bold mb-1 leading-snug group-hover:text-[#F5E6A3] transition-colors">
                                 {opp.title}
                               </h3>
-                              <p className="text-[#C9A84C] text-sm font-semibold">{opp.organization}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-[#C9A84C] text-sm font-semibold">{opp.organization}</p>
+                                {opp.publisherIsVerified && (
+                                  <span title="Recruteur vérifié" className="text-[#C9A84C]">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                  </span>
+                                )}
+                              </div>
                               {opp.description && (
                                 <p className="text-white/50 text-xs mt-2 line-clamp-2">{opp.description}</p>
                               )}
@@ -382,35 +389,15 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                   </AnimatePresence>
                 </motion.div>
 
-                {/* PAGINATION */}
-                {totalPages > 1 && (
-                  <div className="mt-12 flex justify-center items-center gap-2 pb-12">
+                {/* LOAD MORE */}
+                {currentPage < totalPages && (
+                  <div className="mt-12 flex justify-center pb-12">
                     <button
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="glass px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-30 hover:bg-white/10 transition-all"
+                      onClick={() => setCurrentPage(p => p + 1)}
+                      className="glass px-8 py-3 rounded-2xl text-sm font-bold border border-white/10 hover:bg-white/10 hover:border-[#C9A84C]/30 transition-all flex items-center gap-2 text-white/70 hover:text-white"
                     >
-                      ←
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
-                          page === currentPage
-                            ? "bg-[#C9A84C] text-black shadow-lg"
-                            : "glass text-white/60 hover:text-white hover:bg-white/10"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="glass px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-30 hover:bg-white/10 transition-all"
-                    >
-                      →
+                      Charger plus
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 )}

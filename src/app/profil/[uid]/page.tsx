@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState, useRef, use } from "react";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, storage } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getOpportunities, Opportunity, deleteOpportunity, deleteUserData } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap, Trash2, AlertTriangle, Database } from "lucide-react";
+import { Camera, Loader2, Edit3, MapPin, Clock, Briefcase, GraduationCap, Trash2, AlertTriangle } from "lucide-react";
 import { deleteUser } from "firebase/auth";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { seedDatabase } from "@/lib/seed";
 
 interface UserProfile {
   name: string;
@@ -38,7 +38,6 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [seeding, setSeeding] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -94,33 +93,33 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
       return;
     }
 
-    if (file.size > 800 * 1024) {
-      toast.error("Pour la démo, l'image ne doit pas dépasser 800 Ko.");
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("La taille de l'image ne doit pas dépasser 2 Mo.");
       return;
     }
 
     setUploadingPhoto(true);
     try {
-      // Pour éviter le blocage "Blaze Plan" de Firebase Storage, on convertit l'image en Base64
-      // et on la sauvegarde directement dans Firestore (limite 1 Mo par document).
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        try {
-          await updateDoc(doc(db, "users", uid), { photoURL: base64String });
-          setProfile((prev) => prev ? { ...prev, photoURL: base64String } : prev);
-          toast.success("Photo de profil mise à jour !");
-        } catch (err) {
-          console.error("Firestore update failed:", err);
-          toast.error("Erreur lors de la sauvegarde de la photo.");
-        } finally {
-          setUploadingPhoto(false);
-        }
-      };
-      reader.readAsDataURL(file);
+      // Create a reference to the file in Firebase Storage
+      const storageRef = ref(storage, `avatars/${uid}`);
+      
+      // Upload the file
+      await uploadBytes(storageRef, file);
+      
+      // Get the download URL
+      const downloadURL = await getDownloadURL(storageRef);
+      
+      // Update Firestore with the new URL
+      await updateDoc(doc(db, "users", uid), { photoURL: downloadURL });
+      
+      // Update local state
+      setProfile((prev) => prev ? { ...prev, photoURL: downloadURL } : prev);
+      
+      toast.success("Photo de profil mise à jour !");
     } catch (err) {
       console.error("Upload failed:", err);
-      toast.error("Erreur lors du traitement de la photo.");
+      toast.error("Erreur lors de l'upload de la photo.");
+    } finally {
       setUploadingPhoto(false);
     }
   };
@@ -169,20 +168,6 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
   const initials = profile?.name
     ? profile.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
-
-  const handleSeed = async () => {
-    if (!confirm("⚠️ HACKATHON: Injecter 15 profils et 20 opportunités de test dans la base de données ?")) return;
-    setSeeding(true);
-    const res = await seedDatabase();
-    if (res.success) {
-      toast.success(res.message);
-      // Reload page to fetch new opportunities if needed
-      window.location.reload();
-    } else {
-      toast.error(res.message);
-    }
-    setSeeding(false);
-  };
 
   if (loading) {
     return (
@@ -435,29 +420,7 @@ export default function ProfilPage({ params }: { params: Promise<{ uid: string }
         {isOwner && (
           <div className="mt-16 pt-8 border-t border-red-500/10 space-y-6">
             
-            {/* HACKATHON SEED DATA */}
-            <div className="rounded-3xl border border-blue-500/20 bg-blue-500/5 p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-blue-500/10 flex-shrink-0">
-                    <Database className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-blue-400 text-lg mb-1">Zone Hackathon (Démo)</p>
-                    <p className="text-white/50 text-sm max-w-md">
-                      Injecter de fausses données (15 talents, 20 opportunités) pour la démo live. Ne cliquer qu'une seule fois.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleSeed}
-                  disabled={seeding}
-                  className="flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-all text-sm font-bold"
-                >
-                  {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : "Générer fausses données"}
-                </button>
-              </div>
-            </div>
+            {/* DANGER ZONE */}
 
             <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">

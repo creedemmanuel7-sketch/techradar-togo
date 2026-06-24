@@ -1,5 +1,6 @@
 import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp, updateDoc, arrayUnion, arrayRemove, deleteDoc, where, limit, startAfter, QueryDocumentSnapshot, increment } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, storage } from "./firebase";
+import { ref, deleteObject } from "firebase/storage";
 import { CategoryType } from "@/components/ui/CategoryBadge";
 
 export interface OpportunityData {
@@ -13,6 +14,7 @@ export interface OpportunityData {
   deadline: string;
   description: string;
   publisherId?: string;
+  publisherIsVerified?: boolean; // Badge recruteur vérifié
   status?: "open" | "closed";  // Statut de l'offre (open = ouvert, closed = clôturé/pourvu)
 }
 
@@ -20,6 +22,7 @@ export interface Opportunity extends OpportunityData {
   id: string;
   saves: number;
   applicantCount: number; // Nombre de candidats (preuve sociale)
+  views: number; // Nombre de vues
   createdAt: number;
   externalLink?: string;
 }
@@ -68,6 +71,7 @@ export async function addOpportunity(data: OpportunityData): Promise<string> {
     const docRef = await addDoc(collection(db, OPPORTUNITIES_COLLECTION), {
       ...data,
       saves: 0,
+      views: 0,
       createdAt: Timestamp.now(),
     });
     return docRef.id;
@@ -105,6 +109,7 @@ export async function getOpportunities(): Promise<Opportunity[]> {
         status: data.status || "open",
         saves: data.saves || 0,
         applicantCount: data.applicantCount || 0,
+        views: data.views || 0,
         createdAt: data.createdAt?.toMillis() || 0,
       });
     });
@@ -146,6 +151,7 @@ export async function getFilteredOpportunities(
         status: data.status || "open",
         saves: data.saves || 0,
         applicantCount: data.applicantCount || 0,
+        views: data.views || 0,
         createdAt: data.createdAt?.toMillis() || 0,
       });
     });
@@ -205,6 +211,7 @@ export async function getOpportunityById(id: string): Promise<Opportunity | null
       status: data.status || "open",
       saves: data.saves || 0,
       applicantCount: data.applicantCount || 0,
+      views: data.views || 0,
       createdAt: data.createdAt?.toMillis() || 0,
     };
   } catch (error) {
@@ -222,13 +229,24 @@ export async function deleteOpportunity(id: string): Promise<void> {
   }
 }
 
-export async function updateOpportunity(id: string, data: Partial<OpportunityData>): Promise<void> {
+export async function updateOpportunity(id: string, data: Partial<OpportunityData & { views: number }>): Promise<void> {
   try {
     const docRef = doc(db, OPPORTUNITIES_COLLECTION, id);
     await updateDoc(docRef, { ...data });
   } catch (error) {
     console.error("Error updating opportunity: ", error);
     throw error;
+  }
+}
+
+export async function incrementOpportunityViews(id: string): Promise<void> {
+  try {
+    const docRef = doc(db, OPPORTUNITIES_COLLECTION, id);
+    await updateDoc(docRef, {
+      views: increment(1)
+    });
+  } catch (error) {
+    console.error("Error incrementing opportunity views: ", error);
   }
 }
 
@@ -261,15 +279,41 @@ export async function toggleSavedOpportunity(uid: string, opportunityId: string,
 export async function deleteUserData(uid: string): Promise<void> {
   try {
     // 1. Find & delete all opportunities published by this user
-    const q = query(
+    const qOpps = query(
       collection(db, OPPORTUNITIES_COLLECTION),
       where("publisherId", "==", uid)
     );
-    const snapshot = await getDocs(q);
-    const deleteOppPromises = snapshot.docs.map((d) => deleteDoc(d.ref));
+    const oppsSnapshot = await getDocs(qOpps);
+    const deleteOppPromises = oppsSnapshot.docs.map((d) => deleteDoc(d.ref));
     await Promise.all(deleteOppPromises);
 
-    // 2. Delete the Firestore user document
+    // 2. Delete all applications submitted by this user (if talent)
+    const qAppsAsTalent = query(
+      collection(db, APPLICATIONS_COLLECTION),
+      where("talentId", "==", uid)
+    );
+    const appsAsTalentSnap = await getDocs(qAppsAsTalent);
+    const deleteAppsAsTalent = appsAsTalentSnap.docs.map((d) => deleteDoc(d.ref));
+    await Promise.all(deleteAppsAsTalent);
+
+    // 3. Delete all applications received by this user (if recruiter)
+    const qAppsAsRecruiter = query(
+      collection(db, APPLICATIONS_COLLECTION),
+      where("recruiterId", "==", uid)
+    );
+    const appsAsRecruiterSnap = await getDocs(qAppsAsRecruiter);
+    const deleteAppsAsRecruiter = appsAsRecruiterSnap.docs.map((d) => deleteDoc(d.ref));
+    await Promise.all(deleteAppsAsRecruiter);
+
+    // 4. Delete avatar from Firebase Storage
+    try {
+      const avatarRef = ref(storage, `avatars/${uid}`);
+      await deleteObject(avatarRef);
+    } catch (e: any) {
+      // Ignore if file doesn't exist (e.code === 'storage/object-not-found')
+    }
+
+    // 5. Delete the Firestore user document
     await deleteDoc(doc(db, "users", uid));
   } catch (error) {
     console.error("Error deleting user data: ", error);
