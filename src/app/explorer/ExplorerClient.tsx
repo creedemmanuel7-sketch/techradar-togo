@@ -57,6 +57,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
   });
 
   const [userSkills, setUserSkills] = useState<string | undefined>(undefined);
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -65,10 +66,12 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
             setUserSkills(userDoc.data().skills);
+            setUserRole(userDoc.data().role);
           }
         } catch (e) {}
       } else {
         setUserSkills(undefined);
+        setUserRole(undefined);
       }
     });
     return () => unsubscribe();
@@ -98,7 +101,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
 
   const oppsWithMatch = filteredOpps.map(opp => ({
     ...opp,
-    matchScore: calculateMatchScore(
+    matchScore: userRole === "recruiter" ? 0 : calculateMatchScore(
       userSkills,
       `${opp.title} ${opp.description || ""} ${opp.domain}`,
       opp.domain
