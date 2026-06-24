@@ -35,7 +35,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 24;
 
   // Reset to page 1 whenever filters or search change
   const prevFilters = `${activeType}|${activeDomain}|${searchQuery}`;
@@ -287,6 +287,11 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
               </div>
             ) : (
               <>
+                {userSkills && (
+                  <div className="mb-4 text-xs font-medium text-[#C9A84C]/80 bg-[#C9A84C]/10 px-3 py-1.5 rounded-lg inline-block">
+                    Triés par pertinence pour vous
+                  </div>
+                )}
                 <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   <AnimatePresence>
                     {paginatedOpps.map((opp) => (
@@ -306,7 +311,9 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                                 
                                 {/* Match Badge — visible pour tous (skills ou domaine) */}
                                 {opp.matchScore > 0 && (
-                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap ${
+                                  <span 
+                                    title="Complétez votre profil pour améliorer votre score"
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap cursor-help ${
                                     opp.matchScore >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
                                     opp.matchScore >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                     "bg-white/10 text-white/50 border-white/10"
