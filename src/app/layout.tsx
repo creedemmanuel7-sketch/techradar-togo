@@ -1,21 +1,35 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#C9A84C",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "TechRadar Togo — Le hub central de la tech togolaise",
   description: "Toutes les opportunités tech du Togo. Stages, emplois, événements, formations, programmes et concours. Au même endroit.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "TechRadar Togo",
+  },
   icons: {
     icon: "/favicon.svg",
+    apple: "/icons/icon-192x192.png",
   },
 };
 
@@ -51,6 +65,8 @@ export default function RootLayout({
           <Footer />
         </AuthProvider>
         <Toaster theme="dark" position="bottom-right" richColors />
+        {/* PWA Service Worker */}
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

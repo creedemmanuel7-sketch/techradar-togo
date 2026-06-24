@@ -237,8 +237,8 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
   );
 
   return (
-    <div className="flex min-h-screen pt-16 bg-[#050505]">
-      <aside className="hidden lg:block fixed left-0 top-16 bottom-0 w-64 xl:w-72 bg-[#0a0a0a] border-r border-white/5 z-40 overflow-y-auto custom-scrollbar">
+    <div className="flex min-h-[calc(100vh-4rem)] pt-16">
+      <aside className="hidden lg:block fixed left-0 top-16 bottom-0 w-64 xl:w-72 bg-black/60 backdrop-blur-md border-r border-white/5 z-40 overflow-y-auto custom-scrollbar">
         <div className="p-8">
           <SidebarContent />
         </div>
