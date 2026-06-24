@@ -300,21 +300,21 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                       >
                         <Link href={`/opportunite/${opp.id}`} className="block h-full group">
                           <GlassCard hoverEffect className="flex flex-col h-full cursor-pointer">
-                            <div className="flex justify-between items-start mb-5 relative">
-                              <CategoryBadge type={opp.type} label={opp.typeLabel} />
-                              
-                              {/* Match Badge — visible pour tous (skills ou domaine) */}
-                              {opp.matchScore > 0 && (
-                                <div className="absolute left-1/2 -translate-x-1/2 top-0">
-                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg ${
+                            <div className="flex justify-between items-start mb-5 gap-2">
+                              <div className="flex flex-wrap items-center gap-2 flex-1">
+                                <CategoryBadge type={opp.type} label={opp.typeLabel} />
+                                
+                                {/* Match Badge — visible pour tous (skills ou domaine) */}
+                                {opp.matchScore > 0 && (
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap ${
                                     opp.matchScore >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
                                     opp.matchScore >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                     "bg-white/10 text-white/50 border-white/10"
                                   }`}>
                                     {userSkills ? `Match : ${opp.matchScore}%` : `Pertinence : ${opp.matchScore}%`}
                                   </span>
-                                </div>
-                              )}
+                                )}
+                              </div>
 
                               <button
                                 onClick={(e) => e.preventDefault()}
