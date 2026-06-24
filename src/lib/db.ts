@@ -327,11 +327,11 @@ export async function submitApplication(data: ApplicationData): Promise<string> 
     // Check if talent already applied
     const q = query(
       collection(db, APPLICATIONS_COLLECTION),
-      where("opportunityId", "==", data.opportunityId),
-      where("talentId", "==", data.talentId)
+      where("opportunityId", "==", data.opportunityId)
     );
     const existing = await getDocs(q);
-    if (!existing.empty) throw new Error("already_applied");
+    const hasApplied = existing.docs.some(d => d.data().talentId === data.talentId);
+    if (hasApplied) throw new Error("already_applied");
 
     const docRef = await addDoc(collection(db, APPLICATIONS_COLLECTION), {
       ...data,

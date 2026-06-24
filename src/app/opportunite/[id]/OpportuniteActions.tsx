@@ -123,12 +123,12 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
         opportunityTitle: opp.title,
         organization: opp.organization,
         talentId: user.uid,
-        talentName: profile.name,
-        talentEmail: profile.email,
-        talentSkills: profile.skills,
+        talentName: profile.name || "",
+        talentEmail: profile.email || "",
+        talentSkills: profile.skills || "",
         message: applyMessage,
         status: "received",
-        recruiterId: opp.publisherId,
+        recruiterId: opp.publisherId || "",
       });
       setHasApplied(true);
       setShowApplyModal(false);
