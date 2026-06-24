@@ -12,7 +12,6 @@ export interface OpportunityFormData {
   level: string;
   location: string;
   deadline: string;
-  externalLink: string;
   description: string;
 }
 
@@ -24,7 +23,6 @@ export const EMPTY_FORM: OpportunityFormData = {
   level: "Tous",
   location: "",
   deadline: "",
-  externalLink: "",
   description: "",
 };
 
@@ -133,18 +131,6 @@ export function OpportunityForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <label className={labelClass}>Lien pour postuler (URL) *</label>
-          <input
-            required
-            type="url"
-            name="externalLink"
-            value={formData.externalLink}
-            onChange={onChange}
-            placeholder="https://..."
-            className={inputClass}
-          />
-        </div>
       </div>
 
       <div className="space-y-2">
