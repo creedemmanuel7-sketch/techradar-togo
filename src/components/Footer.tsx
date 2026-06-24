@@ -36,7 +36,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -45,15 +45,15 @@ export default function Footer() {
 
   return (
     <footer className={`relative mt-24 border-t border-white/10 bg-[#050505]/40 backdrop-blur-[40px] transition-all duration-300 z-10 ${isExplorer ? "lg:pl-64 xl:pl-72" : ""}`}>
-      
+
       {/* Top glow line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/40 to-transparent" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8">
-        
+
         {/* MAIN GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
-          
+
           {/* BRAND */}
           <div className="lg:col-span-2">
             <a href="/" className="flex items-center gap-2.5 mb-5 group w-fit">
@@ -141,7 +141,7 @@ export default function Footer() {
           <p className="text-xs text-white/30 text-center sm:text-left flex items-center gap-2">
             <span>© {currentYear} TechRadar Togo.</span>
             <span>
-              Créé par <a href="https://creedemmanuel7-sketch.github.io/mon-portfolio" target="_blank" rel="noreferrer" className="text-[#C9A84C] hover:underline font-medium">Emmanuel</a>
+              Créé par <a href="https://creedemmanuel7-sketch.github.io/mon-portfolio" target="_blank" rel="noreferrer" className="text-[#C9A84C] hover:underline font-medium">Crédo</a>
             </span>
           </p>
           <div className="flex items-center gap-1 text-xs text-white/20">
@@ -169,7 +169,7 @@ export default function Footer() {
               </svg>
             </a>
           </div>
-          
+
           <div className="flex items-center gap-6 text-sm font-medium text-white/40">
             <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
             <a href="#" className="hover:text-white transition-colors">Conditions</a>
