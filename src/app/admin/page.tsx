@@ -7,8 +7,6 @@ import { doc, getDoc, collection, query, orderBy, getDocs } from "firebase/fires
 import { getAllUsers, getOpportunities, deleteOpportunity, updateUserRole, UserProfile, Opportunity } from "@/lib/db";
 import { Loader2, Users, Briefcase, Trash2, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -106,10 +104,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-32 pb-16">
+    <div className="text-white flex flex-col">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-16 pb-16">
         <div className="flex items-center gap-3 mb-8">
           <ShieldCheck className="w-8 h-8 text-[#C9A84C]" />
           <h1 className="text-3xl font-extrabold tracking-tight">Dashboard Admin</h1>
@@ -270,8 +266,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
-      
-      <Footer />
     </div>
   );
 }
