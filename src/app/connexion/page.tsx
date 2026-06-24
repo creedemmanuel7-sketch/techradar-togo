@@ -4,7 +4,7 @@ import { useState } from "react";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 // C-1 : Codes d'erreur Firebase → messages utilisateurs clairs
@@ -21,6 +21,7 @@ const FIREBASE_ERRORS: Record<string, string> = {
 export default function ConnexionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [formData, setFormData] = useState({
     email: "",
@@ -132,17 +133,24 @@ export default function ConnexionPage() {
                 <input
                   id="password"
                   required
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className={`w-full bg-white/5 border rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/30 outline-none transition-all ${
+                  className={`w-full bg-white/5 border rounded-xl pl-10 pr-12 py-3 text-white placeholder-white/30 outline-none transition-all ${
                     fieldErrors.password
                       ? "border-red-500/60 focus:border-red-500"
                       : "border-white/10 focus:border-[#C9A84C]/50 focus:bg-white/10"
                   }`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
               {fieldErrors.password && (
                 <p className="text-xs text-red-400 ml-1 mt-1">{fieldErrors.password}</p>

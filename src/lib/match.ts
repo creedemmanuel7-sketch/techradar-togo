@@ -48,6 +48,11 @@ function termFrequency(term: string, docTokens: string[]): number {
   return count / (docTokens.length || 1);
 }
 
+export interface MatchResult {
+  score: number;
+  matchedSkills: string[];
+}
+
 /**
  * Calcule un score de correspondance entre les compétences utilisateur
  * et le texte d'une opportunité.
@@ -55,47 +60,56 @@ function termFrequency(term: string, docTokens: string[]): number {
  * @param userSkills - Compétences de l'utilisateur (ex: "React, Node.js, TypeScript")
  * @param opportunityText - Texte de l'opportunité (titre + description + domaine)
  * @param oppDomain - Domaine de l'opportunité (ex: "Web", "Mobile")
- * @returns Score entre 0 et 100
+ * @returns Objet contenant le score (0-100) et les mots-clés correspondants
  */
 export function calculateMatchScore(
   userSkills: string | undefined,
   opportunityText: string,
   oppDomain?: string
-): number {
+): MatchResult {
   const oppTokens = tokenize(opportunityText);
 
   // ─── Cas 1 : pas de compétences → matching par domaine uniquement ─────────
   if (!userSkills || userSkills.trim().length === 0) {
-    if (!oppDomain) return 0;
+    if (!oppDomain) return { score: 0, matchedSkills: [] };
     const domainKey = tokenize(oppDomain)[0] ?? "";
     const domainWords = DOMAIN_KEYWORDS[domainKey] ?? [];
-    if (domainWords.length === 0) return 0;
+    if (domainWords.length === 0) return { score: 0, matchedSkills: [] };
     const matchedDomainWords = domainWords.filter((kw) =>
       oppTokens.some((t) => t.includes(kw) || kw.includes(t))
     );
-    return Math.min(Math.round((matchedDomainWords.length / domainWords.length) * 60), 60);
+    const score = Math.min(Math.round((matchedDomainWords.length / Math.max(domainWords.length, 1)) * 60), 60);
+    return { score, matchedSkills: matchedDomainWords.slice(0, 3) };
   }
 
-  // ─── Cas 2 : compétences renseignées → TF-IDF simplifié ──────────────────
+  // ─── Cas 2 : compétences renseignées ───────────────────────────────────────
+  const rawSkills = userSkills.split(',').map(s => s.trim()).filter(Boolean);
   const skillTokens = tokenize(userSkills);
-  if (skillTokens.length === 0) return 0;
+  if (skillTokens.length === 0) return { score: 0, matchedSkills: [] };
 
-  let weightedScore = 0;
-  let maxWeight = 0;
+  const matchedRawSkills: string[] = [];
+  let matchCount = 0;
 
-  for (const skill of skillTokens) {
-    // Poids IDF naïf : les skills courts et communs valent moins
-    const idf = skill.length < 3 ? 0.3 : skill.length < 5 ? 0.7 : 1.0;
-    const tf = termFrequency(skill, oppTokens);
-    // Bonus partiel si le skill est contenu dans un token de l'offre
-    const partialMatch = oppTokens.some((t) => t.includes(skill) || skill.includes(t)) ? 0.4 : 0;
-    const exactMatch = tf > 0 ? 1.0 : partialMatch;
-
-    weightedScore += exactMatch * idf;
-    maxWeight += idf;
+  for (const rawSkill of rawSkills) {
+    const rawTokens = tokenize(rawSkill);
+    if (rawTokens.length === 0) continue;
+    
+    // Si au moins un token significatif de la compétence est dans l'offre
+    const isMatched = rawTokens.some(st => 
+      oppTokens.some((ot) => ot === st || ot.includes(st) || st.includes(ot))
+    );
+    
+    if (isMatched) {
+      matchCount++;
+      matchedRawSkills.push(rawSkill);
+    }
   }
 
-  const baseScore = maxWeight > 0 ? (weightedScore / maxWeight) * 100 : 0;
+  // Nouveau barème généreux (pas pénalisé si on a trop de compétences)
+  let baseScore = 0;
+  if (matchCount === 1) baseScore = 40;
+  else if (matchCount === 2) baseScore = 70;
+  else if (matchCount >= 3) baseScore = 90;
 
   // Bonus domaine : +10 si le domaine correspond (max 100)
   let domainBonus = 0;
@@ -108,5 +122,8 @@ export function calculateMatchScore(
     if (hasMatch) domainBonus = 10;
   }
 
-  return Math.min(Math.round(baseScore + domainBonus), 100);
+  return {
+    score: Math.min(Math.round(baseScore + domainBonus), 100),
+    matchedSkills: matchedRawSkills
+  };
 }

@@ -141,7 +141,7 @@ export async function seedDatabase() {
         level: "Tous",
         location: "Lomé (En présentiel)",
         deadline: "2026-06-27",
-        externalLink: "https://techradar.tg",
+
         description: "Rejoignez-nous pour le grand hackathon de la communauté ! 72h pour construire une solution tech innovante à un problème local. Présentation devant un jury d'experts.",
       },
       {
@@ -153,7 +153,7 @@ export async function seedDatabase() {
         level: "Débutant",
         location: "En ligne",
         deadline: "2026-08-15",
-        externalLink: "https://codeacademy.tg",
+
         description: "Formation de 12 semaines pour maîtriser le développement Fullstack JavaScript. Ouvert aux débutants passionnés. Projets pratiques et mentorat inclus.",
       },
       {
@@ -165,7 +165,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "Lomé",
         deadline: "2026-09-10",
-        externalLink: "https://fintech-challenge.tg",
+
         description: "Vous avez une idée révolutionnaire pour l'inclusion financière en Afrique ? Participez au concours et tentez de remporter le grand prix de 5 millions FCFA.",
       },
       {
@@ -177,7 +177,7 @@ export async function seedDatabase() {
         level: "Débutant",
         location: "Kpalimé",
         deadline: "2026-07-01",
-        externalLink: "https://agritech.tg",
+
         description: "Nous recherchons un stagiaire motivé pour participer au développement de notre nouvelle application mobile destinée aux agriculteurs togolais.",
       },
       {
@@ -189,7 +189,7 @@ export async function seedDatabase() {
         level: "Tous",
         location: "Hybride",
         deadline: "2026-07-30",
-        externalLink: "https://womenintech.tg",
+
         description: "Programme d'accompagnement de 6 mois pour les jeunes femmes souhaitant faire carrière dans le numérique. Sessions de mentorat, ateliers et networking.",
       },
       {
@@ -201,7 +201,7 @@ export async function seedDatabase() {
         level: "Avancé",
         location: "Remote",
         deadline: "2026-08-05",
-        externalLink: "https://startuphub.tg",
+
         description: "Poste en CDI 100% remote. Rejoignez notre équipe produit pour concevoir des interfaces modernes et performantes avec Vue.js 3 et Tailwind CSS.",
       },
       {
@@ -213,7 +213,7 @@ export async function seedDatabase() {
         level: "Débutant",
         location: "Lomé (Agoè)",
         deadline: "2026-07-10",
-        externalLink: "https://designersclub.tg",
+
         description: "Apprenez les principes fondamentaux de l'UX/UI avec des experts locaux. Comment passer de l'idée au prototype sur Figma en une journée.",
       },
       {
@@ -225,7 +225,7 @@ export async function seedDatabase() {
         level: "Avancé",
         location: "En ligne",
         deadline: "2026-09-01",
-        externalLink: "https://cloudafrica.net",
+
         description: "Formation pointue sur le déploiement de modèles d'IA à l'échelle sur GCP en utilisant Vertex AI. Réservé aux data scientists expérimentés.",
       },
       {
@@ -237,7 +237,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "En ligne",
         deadline: "2026-08-20",
-        externalLink: "https://togohackers.tg",
+
         description: "Testez vos compétences en sécurité informatique lors de ce CTF de 48h. Epreuves de reverse engineering, web exploitation et cryptographie.",
       },
       {
@@ -249,7 +249,7 @@ export async function seedDatabase() {
         level: "Tous",
         location: "Lomé (Centre Ville)",
         deadline: "2026-07-22",
-        externalLink: "https://ostogo.org",
+
         description: "Rencontre mensuelle de la communauté Open Source. Échanges sur les contributions possibles aux grands projets mondiaux depuis le Togo.",
       },
       {
@@ -261,7 +261,7 @@ export async function seedDatabase() {
         level: "Débutant",
         location: "Lomé",
         deadline: "2026-07-15",
-        externalLink: "https://togotelecom.tg",
+
         description: "Idéal pour les étudiants en fin d'année. Vous aiderez l'équipe Data à nettoyer et visualiser les données commerciales sous PowerBI.",
       },
       {
@@ -273,7 +273,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "Lomé",
         deadline: "2026-08-10",
-        externalLink: "https://nunyalab.tg",
+
         description: "Vous avez un MVP ? Intégrez notre programme d'incubation pour structurer votre business model et préparer votre première levée de fonds.",
       },
       {
@@ -285,7 +285,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "Remote",
         deadline: "2026-07-25",
-        externalLink: "https://ecommerce.tg",
+
         description: "Mission freelance de 6 mois pour optimiser l'API de notre marketplace. Solide expérience sur Django, PostgreSQL et Celery requise.",
       },
       {
@@ -297,7 +297,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "En ligne",
         deadline: "2026-07-05",
-        externalLink: "https://techradar.tg",
+
         description: "Session en direct avec un expert cybersécurité pour comprendre le top 10 OWASP et apprendre à protéger vos applications.",
       },
       {
@@ -309,7 +309,7 @@ export async function seedDatabase() {
         level: "Débutant",
         location: "Lomé",
         deadline: "2026-08-01",
-        externalLink: "https://uiux.tg",
+
         description: "Initiation complète à l'outil Figma. Création d'une maquette d'application mobile étape par étape.",
       },
       {
@@ -321,7 +321,7 @@ export async function seedDatabase() {
         level: "Tous",
         location: "Hybride",
         deadline: "2026-09-15",
-        externalLink: "https://togogaming.tg",
+
         description: "48h pour créer un jeu vidéo complet sur un thème imposé. Programmeurs, artistes, musiciens, tous les talents sont les bienvenus !",
       },
       {
@@ -333,7 +333,7 @@ export async function seedDatabase() {
         level: "Avancé",
         location: "Lomé / Paris",
         deadline: "2026-10-01",
-        externalLink: "https://healthtech.africa",
+
         description: "Accompagnement intensif pour les startups e-santé générant déjà du revenu. Accès à des financements européens et du mentorat.",
       },
       {
@@ -345,7 +345,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "Lomé",
         deadline: "2026-08-20",
-        externalLink: "https://digital-agency.tg",
+
         description: "Venez apprendre Swift et SwiftUI avec nos experts. Vous participerez à la refonte de l'application de notre client principal.",
       },
       {
@@ -357,7 +357,7 @@ export async function seedDatabase() {
         level: "Tous",
         location: "Palais des Congrès, Lomé",
         deadline: "2026-11-10",
-        externalLink: "https://clouddata.africa",
+
         description: "Le plus grand rassemblement de professionnels Cloud et Data d'Afrique de l'Ouest. Keynotes, panels et networking.",
       },
       {
@@ -369,7 +369,7 @@ export async function seedDatabase() {
         level: "Intermédiaire",
         location: "Lomé",
         deadline: "2026-07-30",
-        externalLink: "https://banque-pan.tg",
+
         description: "Contrat à durée déterminée d'un an pour accompagner notre transformation agile. Jira, Confluence, et aisance relationnelle.",
       }
     ];

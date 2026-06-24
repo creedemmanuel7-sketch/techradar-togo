@@ -99,14 +99,14 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
     return matchSearch;
   });
 
-  const oppsWithMatch = filteredOpps.map(opp => ({
-    ...opp,
-    matchScore: userRole === "recruiter" ? 0 : calculateMatchScore(
+  const oppsWithMatch = filteredOpps.map(opp => {
+    const match = userRole === "recruiter" ? { score: 0, matchedSkills: [] } : calculateMatchScore(
       userSkills,
       `${opp.title} ${opp.description || ""} ${opp.domain}`,
       opp.domain
-    )
-  })).sort((a, b) => b.matchScore - a.matchScore);
+    );
+    return { ...opp, match };
+  }).sort((a, b) => b.match.score - a.match.score);
 
   // Pagination
   const totalPages = Math.ceil(oppsWithMatch.length / PAGE_SIZE);
@@ -320,16 +320,22 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                                 )}
                                 
                                 {/* Match Badge */}
-                                {opp.matchScore > 0 && opp.status !== "closed" && (
-                                  <span 
-                                    title="Complétez votre profil pour améliorer votre score"
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap cursor-help ${
-                                    opp.matchScore >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
-                                    opp.matchScore >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
-                                    "bg-white/10 text-white/50 border-white/10"
-                                  }`}>
-                                    {userSkills ? `Match : ${opp.matchScore}%` : `Pertinence : ${opp.matchScore}%`}
-                                  </span>
+                                {opp.match.score > 0 && opp.status !== "closed" && (
+                                  <div className="flex flex-col gap-1 items-start">
+                                    <span 
+                                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap ${
+                                      opp.match.score >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
+                                      opp.match.score >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
+                                      "bg-white/10 text-white/50 border-white/10"
+                                    }`}>
+                                      {userSkills ? `Match : ${opp.match.score}%` : `Pertinence : ${opp.match.score}%`}
+                                    </span>
+                                    {opp.match.matchedSkills && opp.match.matchedSkills.length > 0 && (
+                                      <span className="text-[10px] text-white/50 bg-black/20 px-1.5 py-0.5 rounded border border-white/5">
+                                        💡 {opp.match.matchedSkills.join(", ")}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
 

@@ -51,11 +51,11 @@ export default function TalentsPage() {
     })
     .map(t => ({
       ...t,
-      matchScore: selectedOpp
+      match: selectedOpp
         ? calculateMatchScore(t.skills, `${selectedOpp.title} ${selectedOpp.description} ${selectedOpp.domain}`, selectedOpp.domain)
-        : 0,
+        : { score: 0, matchedSkills: [] },
     }))
-    .sort((a, b) => b.matchScore - a.matchScore);
+    .sort((a, b) => b.match.score - a.match.score);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -137,14 +137,21 @@ export default function TalentsPage() {
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-lg leading-tight truncate">{talent.name}</h3>
                       {/* Match Score Badge */}
-                      {selectedOpp && talent.matchScore > 0 && (
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap flex-shrink-0 ${
-                          talent.matchScore >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" :
-                          talent.matchScore >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
-                          "bg-white/10 text-white/50 border-white/10"
-                        }`}>
-                          Match {talent.matchScore}%
-                        </span>
+                      {selectedOpp && talent.match.score > 0 && (
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${
+                            talent.match.score >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" :
+                            talent.match.score >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
+                            "bg-white/10 text-white/50 border-white/10"
+                          }`}>
+                            Match {talent.match.score}%
+                          </span>
+                          {talent.match.matchedSkills.length > 0 && (
+                            <span className="text-[9px] text-white/40">
+                              💡 {talent.match.matchedSkills.slice(0, 2).join(", ")}{talent.match.matchedSkills.length > 2 ? "..." : ""}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                     {talent.location && (

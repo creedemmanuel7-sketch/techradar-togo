@@ -29,10 +29,9 @@ export function ModifierClient({ opp }: ModifierClientProps) {
     organization: opp.organization,
     type: opp.type,
     domain: opp.domain,
-    level: opp.level,
-    location: opp.location,
+    level: opp.level || "Tous",
+    location: opp.location || "",
     deadline: opp.deadline || "",
-    externalLink: opp.externalLink || "",
     description: opp.description || "",
   });
 

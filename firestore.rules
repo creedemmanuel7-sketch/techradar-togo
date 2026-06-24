@@ -44,5 +44,14 @@ service cloud.firestore {
       // HACKATHON: Allow any authenticated user to do anything
       allow write: if isAuthenticated();
     }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // APPLICATIONS collection
+    // ────────────────────────────────────────────────────────────────────────
+    match /applications/{applicationId} {
+      // HACKATHON: Allow any authenticated user to read/write applications
+      // In production, talents should only read their own, and recruiters their own.
+      allow read, write: if isAuthenticated();
+    }
   }
 }

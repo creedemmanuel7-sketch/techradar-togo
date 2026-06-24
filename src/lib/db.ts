@@ -11,7 +11,6 @@ export interface OpportunityData {
   level: string;
   location: string;
   deadline: string;
-  externalLink: string;
   description: string;
   publisherId?: string;
   status?: "open" | "closed";  // Statut de l'offre (open = ouvert, closed = clôturé/pourvu)
@@ -22,6 +21,7 @@ export interface Opportunity extends OpportunityData {
   saves: number;
   applicantCount: number; // Nombre de candidats (preuve sociale)
   createdAt: number;
+  externalLink?: string;
 }
 
 const OPPORTUNITIES_COLLECTION = "opportunities";
