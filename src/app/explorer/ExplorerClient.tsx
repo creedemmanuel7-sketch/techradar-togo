@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { getFilteredOpportunities, Opportunity } from "@/lib/db";
 import { TYPE_FILTER_OPTIONS, DOMAIN_FILTER_OPTIONS } from "@/lib/constants";
-import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock, ShieldCheck } from "lucide-react";
+import { Search, MapPin, Heart, Filter, X, ArrowRight, Loader2, SlidersHorizontal, Clock, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -34,6 +34,7 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
   const [activeDomain, setActiveDomain] = useState("Tous");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 24;
@@ -238,13 +239,31 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] pt-16">
-      <aside className="hidden lg:block fixed left-0 top-16 bottom-0 w-64 xl:w-72 bg-black/60 backdrop-blur-md border-r border-white/5 z-40 overflow-y-auto custom-scrollbar">
-        <div className="p-8">
+      {/* Desktop Sidebar */}
+      <aside
+        className={`hidden lg:flex flex-col fixed left-0 top-16 bottom-0 bg-black/60 backdrop-blur-md border-r border-white/5 z-40 overflow-hidden transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? "w-0" : "w-64 xl:w-72"
+        }`}
+      >
+        <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
           <SidebarContent />
         </div>
       </aside>
 
-      <main className="flex-1 lg:ml-64 xl:ml-72 flex flex-col min-w-0 pb-24">
+      {/* Sidebar Toggle Button (desktop) */}
+      <button
+        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        className={`hidden lg:flex items-center justify-center fixed top-1/2 -translate-y-1/2 z-50 w-6 h-12 rounded-r-xl bg-white/10 hover:bg-[#C9A84C]/20 border border-l-0 border-white/10 transition-all duration-300 text-white/60 hover:text-[#C9A84C] ${
+          isSidebarCollapsed ? "left-0" : "left-64 xl:left-72"
+        }`}
+        aria-label={isSidebarCollapsed ? "Ouvrir les filtres" : "Fermer les filtres"}
+      >
+        {isSidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+      </button>
+
+      <main className={`flex-1 flex flex-col min-w-0 pb-24 transition-all duration-300 ease-in-out ${
+        isSidebarCollapsed ? "lg:ml-0" : "lg:ml-64 xl:ml-72"
+      }`}>
 
         {/* Profile incomplete nudge — shown to logged-in users without skills */}
         {isLoggedIn && !userSkills && (
