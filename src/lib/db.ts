@@ -40,6 +40,7 @@ export interface UserProfile {
   skills?: string;
   savedOpportunities?: string[];
   isVerified?: boolean; // Recruteur vérifié
+  notifCount?: number;  // Notifs non lues (candidatures reçues)
   createdAt?: number;
 }
 
@@ -382,12 +383,43 @@ export async function submitApplication(data: ApplicationData): Promise<string> 
       status: "received",
       createdAt: Timestamp.now(),
     });
+
     // Increment applicant counter on the opportunity
     await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, data.opportunityId), {
       applicantCount: increment(1),
     });
+
+    // Increment unread notification count on the recruiter
+    if (data.recruiterId) {
+      try {
+        await updateDoc(doc(db, "users", data.recruiterId), {
+          notifCount: increment(1),
+        });
+      } catch (_) { /* recruiter doc may not exist, non-blocking */ }
+    }
+
     return docRef.id;
   } catch (error) {
+    throw error;
+  }
+}
+
+/** Clears unread notification count for a recruiter after they visit the candidatures page. */
+export async function clearNotifCount(uid: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, "users", uid), { notifCount: 0 });
+  } catch (_) { /* non-blocking */ }
+}
+
+/** Adds a lightweight "Je suis intéressé" signal for an opportunity. */
+export async function addInterest(uid: string, opportunityId: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), {
+      interestCount: increment(1),
+      interestedUsers: arrayUnion(uid),
+    });
+  } catch (error) {
+    console.error("Error adding interest: ", error);
     throw error;
   }
 }

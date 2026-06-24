@@ -7,9 +7,9 @@ import { auth, db } from "@/lib/firebase";
 import { 
   toggleSavedOpportunity, deleteOpportunity, submitApplication, 
   closeOpportunity, openOpportunity, Opportunity, UserProfile,
-  incrementOpportunityViews
+  incrementOpportunityViews, addInterest
 } from "@/lib/db";
-import { Share2, Heart, Trash2, Loader2, Send, Pencil, CheckCircle2, Lock, Unlock } from "lucide-react";
+import { Share2, Heart, Trash2, Loader2, Send, Pencil, CheckCircle2, Lock, Unlock, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -38,6 +38,8 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
   const [applyMessage, setApplyMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [hasInterested, setHasInterested] = useState(false);
+  const [isInteresting, setIsInteresting] = useState(false);
 
   // Local status (to reflect close/reopen without page reload)
   const [localStatus, setLocalStatus] = useState<"open" | "closed">(opp.status || "open");
@@ -127,7 +129,7 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
     if (!applyMessage.trim()) { toast.error("Veuillez rédiger un message de motivation."); return; }
     setIsSubmitting(true);
     try {
-      await submitApplication({
+      const appId = await submitApplication({
         opportunityId: opp.id,
         opportunityTitle: opp.title,
         organization: opp.organization,
@@ -142,6 +144,25 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
       setHasApplied(true);
       setShowApplyModal(false);
       toast.success("🎉 Candidature envoyée ! Le recruteur va être notifié.");
+
+      // Fire-and-forget email notification
+      if (opp.publisherId && profile.email) {
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "new_application",
+            recruiterEmail: "",  // filled server-side via recruiterId lookup if needed
+            recruiterName: "Recruteur",
+            talentName: profile.name || "",
+            talentEmail: profile.email || "",
+            opportunityTitle: opp.title,
+            organization: opp.organization,
+            message: applyMessage,
+            applicationId: appId,
+          }),
+        }).catch(() => {}); // non-blocking
+      }
     } catch (err: unknown) {
       if (err instanceof Error && err.message === "already_applied") {
         toast.error("Vous avez déjà postulé à cette offre.");
@@ -151,6 +172,20 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleInterest = async () => {
+    if (!user) { toast.error("Connectez-vous pour signaler votre intérêt."); return; }
+    setIsInteresting(true);
+    try {
+      await addInterest(user.uid, opp.id);
+      setHasInterested(true);
+      toast.success("✨ Signal envoyé au recruteur !");
+    } catch {
+      toast.error("Une erreur s'est produite.");
+    } finally {
+      setIsInteresting(false);
     }
   };
 
@@ -182,7 +217,7 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
           )}
         </div>
 
-        {/* CTA Postuler — uniquement pour les talents, offre ouverte */}
+        {/* CTA Postuler + Intéressé — uniquement pour les talents, offre ouverte */}
         {isTalent && localStatus === "open" && (
           hasApplied ? (
             <div className="w-full flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 font-bold px-8 py-4 rounded-2xl text-sm">
@@ -190,13 +225,30 @@ export function OpportuniteActions({ opp }: OpportuniteActionsProps) {
               Candidature envoyée ✓
             </div>
           ) : (
-            <button
-              onClick={() => setShowApplyModal(true)}
-              className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity"
-            >
-              <Send className="w-4 h-4" />
-              Postuler via TechRadar
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setShowApplyModal(true)}
+                className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] text-black font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity"
+              >
+                <Send className="w-4 h-4" />
+                Postuler via TechRadar
+              </button>
+              {!hasInterested && (
+                <button
+                  onClick={handleInterest}
+                  disabled={isInteresting}
+                  className="w-full flex items-center justify-center gap-2 px-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 text-sm font-medium transition-all"
+                >
+                  {isInteresting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Je suis intéressé(e)
+                </button>
+              )}
+              {hasInterested && (
+                <div className="w-full flex items-center justify-center gap-2 px-8 py-3 rounded-2xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 text-[#C9A84C] text-sm font-medium">
+                  <Sparkles className="w-4 h-4" /> Signal envoyé ✓
+                </div>
+              )}
+            </div>
           )
         )}
 

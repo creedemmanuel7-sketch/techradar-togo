@@ -3,7 +3,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ─── Helper functions ────────────────────────────────────────────────────
+
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -12,46 +13,66 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return getUserData().role;
     }
 
     function isRecruiter() {
       return isAuthenticated() && getUserRole() == 'recruiter';
     }
 
-    // ───────────────────────────────────────────────
-    // OPPORTUNITIES collection
-    // ───────────────────────────────────────────────
+    function isTalent() {
+      return isAuthenticated() && getUserRole() == 'talent';
+    }
+
+    // ─── OPPORTUNITIES ───────────────────────────────────────────────────────
     match /opportunities/{oppId} {
-      // Anyone (including anonymous) can read opportunities
+      // Anyone (including anonymous) can read opportunities — public listing
       allow read: if true;
 
-      // Only authenticated recruiters can create opportunities
-      // The publisherId in the new document must match the authenticated user
-      // HACKATHON: Allow any authenticated user to do anything
-      allow write: if isAuthenticated();
+      // Only authenticated recruiters can create an opportunity
+      // The publisherId must match their own UID
+      allow create: if isRecruiter()
+        && request.resource.data.publisherId == request.auth.uid;
+
+      // Only the recruiter who owns the opportunity can update/delete it
+      allow update, delete: if isAuthenticated()
+        && resource.data.publisherId == request.auth.uid;
     }
 
-    // ───────────────────────────────────────────────
-    // USERS collection
-    // ───────────────────────────────────────────────
+    // ─── USERS ───────────────────────────────────────────────────────────────
     match /users/{userId} {
-      // A user can read their own full document
-      // Anyone can read limited public profile data (handled by frontend)
+      // Public profiles are readable by anyone (for the talent directory)
       allow read: if true;
 
-      // HACKATHON: Allow any authenticated user to do anything
-      allow write: if isAuthenticated();
+      // Only the user themselves can write their own profile
+      allow write: if isOwner(userId);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // APPLICATIONS collection
-    // ────────────────────────────────────────────────────────────────────────
+    // ─── APPLICATIONS ────────────────────────────────────────────────────────
     match /applications/{applicationId} {
-      // HACKATHON: Allow any authenticated user to read/write applications
-      // In production, talents should only read their own, and recruiters their own.
-      allow read, write: if isAuthenticated();
+      // A talent can read their own applications
+      // A recruiter can read applications for their opportunities
+      allow read: if isAuthenticated() && (
+        resource.data.talentId == request.auth.uid ||
+        resource.data.recruiterId == request.auth.uid
+      );
+
+      // Any authenticated talent can submit an application
+      // Their talentId must match their own UID
+      allow create: if isTalent()
+        && request.resource.data.talentId == request.auth.uid;
+
+      // Only the recruiter who owns the opportunity can update the status
+      allow update: if isAuthenticated()
+        && resource.data.recruiterId == request.auth.uid;
+
+      // No deletion of applications (audit trail)
+      allow delete: if false;
     }
   }
 }

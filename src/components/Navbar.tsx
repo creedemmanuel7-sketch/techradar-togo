@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle, Bell, Briefcase, Send } from "lucide-react";
+import { onAuthStateChanged, signOut, User, sendEmailVerification } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
+import { clearNotifCount } from "@/lib/db";
+import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle, Bell, Briefcase, Send, MailWarning } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 
 interface UserProfile {
   name: string;
   role: "talent" | "recruiter";
   photoURL?: string;
+  notifCount?: number;
+  isVerified?: boolean;
 }
 
 export default function Navbar() {
@@ -21,6 +25,7 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(true);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -29,19 +34,33 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Live profile listener (onSnapshot) — updates notifCount in real time
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+    let unsubProfile: (() => void) | null = null;
+
+    const unsubAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
+      setEmailVerified(u?.emailVerified ?? true);
+
+      // Clean up previous listener if user changes
+      if (unsubProfile) { unsubProfile(); unsubProfile = null; }
+
       if (u) {
-        const docSnap = await getDoc(doc(db, "users", u.uid));
-        if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile);
-        }
+        // Real-time listener on user doc
+        unsubProfile = onSnapshot(doc(db, "users", u.uid), (snap) => {
+          if (snap.exists()) {
+            setProfile(snap.data() as UserProfile);
+          }
+        });
       } else {
         setProfile(null);
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubAuth();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -49,9 +68,30 @@ export default function Navbar() {
     window.location.href = "/";
   };
 
+  const handleResendVerification = async () => {
+    if (!user) return;
+    try {
+      await sendEmailVerification(user);
+      toast.success("Email de vérification envoyé !");
+    } catch {
+      toast.error("Erreur lors de l'envoi. Réessayez dans quelques minutes.");
+    }
+  };
+
+  const handleOpenNotifs = async () => {
+    setIsNotifOpen(!isNotifOpen);
+    setIsUserMenuOpen(false);
+    // Mark as read when recruiter opens the panel
+    if (user && profile?.role === "recruiter" && (profile?.notifCount ?? 0) > 0) {
+      await clearNotifCount(user.uid);
+    }
+  };
+
   const initials = profile?.name
     ? profile.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "U";
+
+  const notifCount = profile?.notifCount ?? 0;
 
   const navLinks = [
     { href: "/explorer", label: "Explorer" },
@@ -63,7 +103,21 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      {/* Email verification banner */}
+      {user && !emailVerified && (
+        <div className="fixed top-0 w-full z-[60] bg-amber-500/90 backdrop-blur-sm px-4 py-2 flex items-center justify-center gap-3 text-xs text-black font-medium">
+          <MailWarning className="w-4 h-4 flex-shrink-0" />
+          <span>Votre email n'est pas vérifié. Vérifiez votre boîte mail.</span>
+          <button
+            onClick={handleResendVerification}
+            className="underline font-bold hover:opacity-80 transition-opacity"
+          >
+            Renvoyer l'email
+          </button>
+        </div>
+      )}
+
+      <nav className={`fixed ${user && !emailVerified ? "top-9" : "top-0"} w-full z-50 transition-all duration-300 ${
         scrolled
           ? "bg-black/60 backdrop-blur-[40px] saturate-200 border-b border-white/10 shadow-lg"
           : "bg-transparent"
@@ -99,7 +153,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {user && profile ? (
               <>
-                {/* F-4 : Bouton Publier visible uniquement pour les recruteurs */}
+                {/* Bouton Publier — recruteurs uniquement */}
                 {profile.role === "recruiter" && (
                   <a
                     href="/soumettre"
@@ -110,14 +164,18 @@ export default function Navbar() {
                   </a>
                 )}
 
-                {/* NOTIFICATION MENU */}
+                {/* NOTIFICATION BELL — with live badge */}
                 <div className="relative">
                   <button
-                    onClick={() => { setIsNotifOpen(!isNotifOpen); setIsUserMenuOpen(false); }}
+                    onClick={handleOpenNotifs}
                     className="relative flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 w-10 h-10 rounded-xl transition-all"
                   >
                     <Bell className="w-5 h-5 text-white/80" />
-                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    {notifCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center px-1 animate-pulse">
+                        {notifCount > 9 ? "9+" : notifCount}
+                      </span>
+                    )}
                   </button>
 
                   <AnimatePresence>
@@ -131,19 +189,38 @@ export default function Navbar() {
                       >
                         <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                           <h3 className="font-bold text-sm">Notifications</h3>
-                          <span className="text-xs text-[#C9A84C] font-medium cursor-pointer">Tout marquer comme lu</span>
+                          {profile.role === "recruiter" && (
+                            <a href="/candidatures" className="text-xs text-[#C9A84C] font-medium hover:underline" onClick={() => setIsNotifOpen(false)}>
+                              Voir les candidatures →
+                            </a>
+                          )}
                         </div>
                         <div className="flex flex-col max-h-80 overflow-y-auto">
-                          <div className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer relative">
-                            <div className="w-2 h-2 bg-[#C9A84C] rounded-full absolute left-2 top-6"></div>
-                            <p className="text-sm font-medium text-white/90 pl-3">Nouveau Hackathon "Build for the Community" !</p>
-                            <p className="text-xs text-white/50 pl-3 mt-1">Il y a 10 min</p>
-                          </div>
-                          <div className="p-4 hover:bg-white/5 transition-colors cursor-pointer relative">
-                            <div className="w-2 h-2 bg-[#C9A84C] rounded-full absolute left-2 top-6"></div>
-                            <p className="text-sm font-medium text-white/90 pl-3">🔥 Votre profil matche à 100% avec le poste "Développeur Senior Vue.js" !</p>
-                            <p className="text-xs text-white/50 pl-3 mt-1">Il y a 1 heure</p>
-                          </div>
+                          {profile.role === "recruiter" ? (
+                            notifCount > 0 ? (
+                              <div className="p-5 flex flex-col items-center text-center gap-2">
+                                <span className="text-3xl font-extrabold text-[#C9A84C]">{notifCount}</span>
+                                <p className="text-sm text-white/70">
+                                  nouvelle{notifCount > 1 ? "s" : ""} candidature{notifCount > 1 ? "s" : ""} non lue{notifCount > 1 ? "s" : ""}
+                                </p>
+                                <a
+                                  href="/candidatures"
+                                  className="mt-2 text-xs bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/20 px-4 py-2 rounded-xl hover:bg-[#C9A84C]/20 transition-all"
+                                  onClick={() => setIsNotifOpen(false)}
+                                >
+                                  Gérer les candidatures
+                                </a>
+                              </div>
+                            ) : (
+                              <div className="p-6 text-center text-white/40 text-sm">
+                                Aucune nouvelle candidature
+                              </div>
+                            )
+                          ) : (
+                            <div className="p-6 text-center text-white/40 text-sm">
+                              Complétez votre profil pour recevoir des alertes de matching.
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -284,14 +361,28 @@ export default function Navbar() {
                       className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl"
                       onClick={() => setIsMobileOpen(false)}
                     >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#C9A84C] to-[#F5E6A3] flex items-center justify-center text-black text-xs font-bold">
-                        {initials}
-                      </div>
+                      {profile.photoURL ? (
+                        <img src={profile.photoURL} alt={profile.name} className="w-9 h-9 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#C9A84C] to-[#F5E6A3] flex items-center justify-center text-black text-xs font-bold">
+                          {initials}
+                        </div>
+                      )}
                       <div>
                         <p className="text-sm font-bold">{profile.name}</p>
                         <p className="text-xs text-white/50 capitalize">{profile.role}</p>
                       </div>
                     </a>
+                    {profile.role === "recruiter" && notifCount > 0 && (
+                      <a
+                        href="/candidatures"
+                        className="flex items-center justify-between px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"
+                        onClick={() => setIsMobileOpen(false)}
+                      >
+                        <span className="flex items-center gap-2"><Bell className="w-4 h-4" /> Nouvelles candidatures</span>
+                        <span className="font-bold">{notifCount}</span>
+                      </a>
+                    )}
                     <button
                       onClick={handleSignOut}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
