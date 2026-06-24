@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp, updateDoc, arrayUnion, arrayRemove, deleteDoc, where, limit, startAfter, QueryDocumentSnapshot } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, Timestamp, updateDoc, arrayUnion, arrayRemove, deleteDoc, where, limit, startAfter, QueryDocumentSnapshot, increment } from "firebase/firestore";
 import { db } from "./firebase";
 import { CategoryType } from "@/components/ui/CategoryBadge";
 
@@ -14,11 +14,13 @@ export interface OpportunityData {
   externalLink: string;
   description: string;
   publisherId?: string;
+  status?: "open" | "closed";  // Statut de l'offre (open = ouvert, closed = clôturé/pourvu)
 }
 
 export interface Opportunity extends OpportunityData {
   id: string;
   saves: number;
+  applicantCount: number; // Nombre de candidats (preuve sociale)
   createdAt: number;
 }
 
@@ -34,8 +36,32 @@ export interface UserProfile {
   location?: string;
   skills?: string;
   savedOpportunities?: string[];
+  isVerified?: boolean; // Recruteur vérifié
   createdAt?: number;
 }
+
+// ─── Applications (Candidatures) ───────────────────────────────────────────
+export type ApplicationStatus = "received" | "reviewing" | "accepted" | "rejected";
+
+export interface ApplicationData {
+  opportunityId: string;
+  opportunityTitle: string;
+  organization: string;
+  talentId: string;
+  talentName: string;
+  talentEmail: string;
+  talentSkills?: string;
+  message: string;
+  status: ApplicationStatus;
+  recruiterId?: string;
+}
+
+export interface Application extends ApplicationData {
+  id: string;
+  createdAt: number;
+}
+
+const APPLICATIONS_COLLECTION = "applications";
 
 export async function addOpportunity(data: OpportunityData): Promise<string> {
   try {
@@ -76,7 +102,9 @@ export async function getOpportunities(): Promise<Opportunity[]> {
         externalLink: data.externalLink,
         description: data.description || "",
         publisherId: data.publisherId || "",
+        status: data.status || "open",
         saves: data.saves || 0,
+        applicantCount: data.applicantCount || 0,
         createdAt: data.createdAt?.toMillis() || 0,
       });
     });
@@ -115,7 +143,9 @@ export async function getFilteredOpportunities(
         externalLink: data.externalLink,
         description: data.description || "",
         publisherId: data.publisherId || "",
+        status: data.status || "open",
         saves: data.saves || 0,
+        applicantCount: data.applicantCount || 0,
         createdAt: data.createdAt?.toMillis() || 0,
       });
     });
@@ -172,7 +202,9 @@ export async function getOpportunityById(id: string): Promise<Opportunity | null
       externalLink: data.externalLink,
       description: data.description || "",
       publisherId: data.publisherId || "",
+      status: data.status || "open",
       saves: data.saves || 0,
+      applicantCount: data.applicantCount || 0,
       createdAt: data.createdAt?.toMillis() || 0,
     };
   } catch (error) {
@@ -281,5 +313,105 @@ export async function getTalents(): Promise<UserProfile[]> {
   } catch (error) {
     console.error("Error getting talents: ", error);
     return [];
+  }
+}
+
+// ─── Application CRUD ───────────────────────────────────────────────────────
+
+/**
+ * Submits a native application for an opportunity.
+ * Atomically increments the applicant counter on the opportunity.
+ */
+export async function submitApplication(data: ApplicationData): Promise<string> {
+  try {
+    // Check if talent already applied
+    const q = query(
+      collection(db, APPLICATIONS_COLLECTION),
+      where("opportunityId", "==", data.opportunityId),
+      where("talentId", "==", data.talentId)
+    );
+    const existing = await getDocs(q);
+    if (!existing.empty) throw new Error("already_applied");
+
+    const docRef = await addDoc(collection(db, APPLICATIONS_COLLECTION), {
+      ...data,
+      status: "received",
+      createdAt: Timestamp.now(),
+    });
+    // Increment applicant counter on the opportunity
+    await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, data.opportunityId), {
+      applicantCount: increment(1),
+    });
+    return docRef.id;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/** Fetches all applications submitted by a given talent. */
+export async function getApplicationsByTalent(talentId: string): Promise<Application[]> {
+  try {
+    const q = query(
+      collection(db, APPLICATIONS_COLLECTION),
+      where("talentId", "==", talentId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({
+      id: d.id,
+      ...(d.data() as ApplicationData),
+      createdAt: (d.data().createdAt as Timestamp)?.toMillis() || 0,
+    })).sort((a, b) => b.createdAt - a.createdAt);
+  } catch (error) {
+    console.error("Error getting talent applications: ", error);
+    return [];
+  }
+}
+
+/** Fetches all applications received for opportunities published by a recruiter. */
+export async function getApplicationsByRecruiter(recruiterId: string): Promise<Application[]> {
+  try {
+    const q = query(
+      collection(db, APPLICATIONS_COLLECTION),
+      where("recruiterId", "==", recruiterId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({
+      id: d.id,
+      ...(d.data() as ApplicationData),
+      createdAt: (d.data().createdAt as Timestamp)?.toMillis() || 0,
+    })).sort((a, b) => b.createdAt - a.createdAt);
+  } catch (error) {
+    console.error("Error getting recruiter applications: ", error);
+    return [];
+  }
+}
+
+/** Updates the status of an application. */
+export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus): Promise<void> {
+  try {
+    await updateDoc(doc(db, APPLICATIONS_COLLECTION, applicationId), { status });
+  } catch (error) {
+    console.error("Error updating application status: ", error);
+    throw error;
+  }
+}
+
+/** Closes an opportunity (marks it as clôturé/pourvu). */
+export async function closeOpportunity(opportunityId: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), { status: "closed" });
+  } catch (error) {
+    console.error("Error closing opportunity: ", error);
+    throw error;
+  }
+}
+
+/** Re-opens a previously closed opportunity. */
+export async function openOpportunity(opportunityId: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), { status: "open" });
+  } catch (error) {
+    console.error("Error reopening opportunity: ", error);
+    throw error;
   }
 }

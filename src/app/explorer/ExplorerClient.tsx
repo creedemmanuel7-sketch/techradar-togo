@@ -306,14 +306,21 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
                       >
-                        <Link href={`/opportunite/${opp.id}`} className="block h-full group">
+                        <Link href={`/opportunite/${opp.id}`} className={`block h-full group ${opp.status === "closed" ? "opacity-60" : ""}`}>
                           <GlassCard hoverEffect className="flex flex-col h-full cursor-pointer">
                             <div className="flex justify-between items-start mb-5 gap-2">
                               <div className="flex flex-wrap items-center gap-2 flex-1">
                                 <CategoryBadge type={opp.type} label={opp.typeLabel} />
                                 
-                                {/* Match Badge — visible pour tous (skills ou domaine) */}
-                                {opp.matchScore > 0 && (
+                                {/* Closed badge */}
+                                {opp.status === "closed" && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">
+                                    Pourvu
+                                  </span>
+                                )}
+                                
+                                {/* Match Badge */}
+                                {opp.matchScore > 0 && opp.status !== "closed" && (
                                   <span 
                                     title="Complétez votre profil pour améliorer votre score"
                                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap cursor-help ${
@@ -347,6 +354,11 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                             <div className="flex items-center gap-2 mb-5 flex-wrap">
                               <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-xs text-white/70">{opp.domain}</span>
                               <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-xs text-white/70">{opp.level}</span>
+                              {(opp.applicantCount || 0) > 0 && (
+                                <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-xs text-white/50">
+                                  {opp.applicantCount} candidat{opp.applicantCount > 1 ? "s" : ""}
+                                </span>
+                              )}
                             </div>
 
                             <div className="flex items-center justify-between text-xs font-medium pt-4 border-t border-white/10">

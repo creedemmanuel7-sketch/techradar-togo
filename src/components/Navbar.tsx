@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle, Bell } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, User as UserIcon, PlusCircle, Bell, Briefcase, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
@@ -183,6 +183,24 @@ export default function Navbar() {
                         >
                           <UserIcon className="w-4 h-4" /> Mon profil
                         </a>
+                        {profile.role === "talent" && (
+                          <a
+                            href="/mes-candidatures"
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <Send className="w-4 h-4" /> Mes candidatures
+                          </a>
+                        )}
+                        {profile.role === "recruiter" && (
+                          <a
+                            href="/candidatures"
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <Briefcase className="w-4 h-4" /> Candidatures reçues
+                          </a>
+                        )}
                         <div className="h-px bg-white/10 mx-3" />
                         <button
                           onClick={handleSignOut}

@@ -1,6 +1,6 @@
 import { getOpportunityById } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { ArrowLeft, MapPin, Clock, Building2, Layers, ExternalLink } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Building2, Layers, Users } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 import { OpportuniteActions } from "./OpportuniteActions";
@@ -63,15 +63,32 @@ export default async function OpportunitePage({ params }: { params: Promise<{ id
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
             <div className="flex-1">
-              <div className="mb-4">
+              <div className="mb-4 flex flex-wrap items-center gap-2">
                 <CategoryBadge type={opp.type} label={opp.typeLabel} />
+                {/* Status badge */}
+                {opp.status === "closed" ? (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                    🔴 Offre pourvue
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">
+                    🟢 Offre ouverte
+                  </span>
+                )}
+                {/* Applicant count */}
+                {(opp.applicantCount || 0) > 0 && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 text-white/50 border border-white/10">
+                    <Users className="w-3 h-3" />
+                    {opp.applicantCount} candidature{opp.applicantCount > 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 leading-tight">{opp.title}</h1>
               <p className="text-[#C9A84C] text-xl font-bold">{opp.organization}</p>
             </div>
 
             {/* Client Component: Boutons Interactifs (Favoris, Partager, Supprimer, Postuler) */}
-            <OpportuniteActions opp={opp} externalLink={opp.externalLink} />
+            <OpportuniteActions opp={opp} />
           </div>
 
           {/* METADATA PILLS */}
