@@ -138,8 +138,11 @@ export default function Footer() {
 
         {/* BOTTOM BAR */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/30 text-center sm:text-left">
-            © {currentYear} TechRadar Togo. Fait avec ❤️ à Lomé, Togo.
+          <p className="text-xs text-white/30 text-center sm:text-left flex items-center gap-2">
+            <span>© {currentYear} TechRadar Togo.</span>
+            <span>
+              Créé par <a href="https://creedemmanuel7-sketch.github.io/mon-portfolio" target="_blank" rel="noreferrer" className="text-[#C9A84C] hover:underline font-medium">Emmanuel</a>
+            </span>
           </p>
           <div className="flex items-center gap-1 text-xs text-white/20">
             <Zap className="w-3 h-3 text-[#C9A84C]" />
