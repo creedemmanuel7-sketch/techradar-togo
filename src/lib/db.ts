@@ -25,6 +25,8 @@ export interface Opportunity extends OpportunityData {
   views: number; // Nombre de vues
   createdAt: number;
   externalLink?: string;
+  interestCount?: number;
+  interestedUsers?: string[];
 }
 
 const OPPORTUNITIES_COLLECTION = "opportunities";
@@ -77,11 +79,21 @@ export async function addOpportunity(data: OpportunityData): Promise<string> {
     });
 
     // Sync to Algolia
-    fetch('/api/sync-opportunity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ opportunityId: docRef.id })
-    }).catch(console.error);
+    try {
+      const internalApiKey = process.env.INTERNAL_API_KEY;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (internalApiKey) {
+        headers['Authorization'] = `Bearer ${internalApiKey}`;
+      }
+      await fetch('/api/sync-opportunity', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ opportunityId: docRef.id })
+      });
+    } catch (syncError) {
+      console.error("Algolia sync failed after addOpportunity:", syncError);
+      // Non-blocking: opportunity is saved in Firestore even if sync fails
+    }
 
     return docRef.id;
   } catch (error) {
@@ -136,11 +148,41 @@ export async function getFilteredOpportunities(
   lastVisibleDoc: QueryDocumentSnapshot | null = null
 ): Promise<{ data: Opportunity[]; lastDoc: QueryDocumentSnapshot | null }> {
   try {
-    // HACKATHON FIX: Fetch all and filter in memory to avoid missing Firestore composite indexes error
-    const q = query(collection(db, OPPORTUNITIES_COLLECTION));
+    // Build query with filters
+    const constraints: any[] = [orderBy("createdAt", "desc")];
+    
+    // Apply Type filter
+    // UI sends the label (e.g. "Événement"), DB stores the value (e.g. "evenement")
+    if (filters.type && filters.type !== "Tous") {
+      const typeMapping: Record<string, string> = {
+        "Emploi": "emploi",
+        "Stage": "stage",
+        "Événement": "evenement",
+        "Formation": "formation",
+        "Programme": "programme",
+        "Concours": "concours"
+      };
+      const targetType = typeMapping[filters.type] || filters.type;
+      constraints.push(where("type", "==", targetType));
+    }
+    
+    // Apply Domain filter
+    if (filters.domain && filters.domain !== "Tous") {
+      constraints.push(where("domain", "==", filters.domain));
+    }
+    
+    // Apply limit
+    constraints.push(limit(limitCount));
+    
+    // Apply pagination cursor if provided
+    if (lastVisibleDoc) {
+      constraints.push(startAfter(lastVisibleDoc));
+    }
+    
+    const q = query(collection(db, OPPORTUNITIES_COLLECTION), ...constraints);
     const querySnapshot = await getDocs(q);
     
-    let opportunities: Opportunity[] = [];
+    const opportunities: Opportunity[] = [];
     
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -165,36 +207,69 @@ export async function getFilteredOpportunities(
       });
     });
     
-    // Sort descending by createdAt
-    opportunities.sort((a, b) => b.createdAt - a.createdAt);
-
-    // Apply Domain filter
-    if (filters.domain && filters.domain !== "Tous") {
-      opportunities = opportunities.filter((o) => o.domain === filters.domain);
-    }
+    const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
     
-    // Apply Type filter
-    // UI sends the label (e.g. "Événement"), DB stores the value (e.g. "evenement")
-    if (filters.type && filters.type !== "Tous") {
-      const typeMapping: Record<string, string> = {
-        "Emploi": "emploi",
-        "Stage": "stage",
-        "Événement": "evenement",
-        "Formation": "formation",
-        "Programme": "programme",
-        "Concours": "concours"
-      };
-      const targetType = typeMapping[filters.type] || filters.type;
-      opportunities = opportunities.filter((o) => o.type === targetType);
-    }
-    
-    // Ignore pagination for the hackathon demo so all results show up
-    const finalData = opportunities.slice(0, 50);
-    
-    return { data: finalData, lastDoc: null };
+    return { data: opportunities, lastDoc };
   } catch (error) {
     console.error("Error getting filtered opportunities: ", error);
-    return { data: [], lastDoc: null };
+    // Fallback to client-side filtering if composite index is missing
+    console.warn("Falling back to client-side filtering (composite index may be missing)");
+    
+    try {
+      const q = query(collection(db, OPPORTUNITIES_COLLECTION), orderBy("createdAt", "desc"), limit(100));
+      const querySnapshot = await getDocs(q);
+      
+      let opportunities: Opportunity[] = [];
+      
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        opportunities.push({
+          id: docSnap.id,
+          title: data.title,
+          organization: data.organization,
+          type: data.type,
+          typeLabel: data.typeLabel,
+          domain: data.domain,
+          level: data.level,
+          location: data.location,
+          deadline: data.deadline,
+          externalLink: data.externalLink,
+          description: data.description || "",
+          publisherId: data.publisherId || "",
+          status: data.status || "open",
+          saves: data.saves || 0,
+          applicantCount: data.applicantCount || 0,
+          views: data.views || 0,
+          createdAt: data.createdAt?.toMillis() || 0,
+        });
+      });
+
+      // Apply Domain filter
+      if (filters.domain && filters.domain !== "Tous") {
+        opportunities = opportunities.filter((o) => o.domain === filters.domain);
+      }
+      
+      // Apply Type filter
+      if (filters.type && filters.type !== "Tous") {
+        const typeMapping: Record<string, string> = {
+          "Emploi": "emploi",
+          "Stage": "stage",
+          "Événement": "evenement",
+          "Formation": "formation",
+          "Programme": "programme",
+          "Concours": "concours"
+        };
+        const targetType = typeMapping[filters.type] || filters.type;
+        opportunities = opportunities.filter((o) => o.type === targetType);
+      }
+      
+      const finalData = opportunities.slice(0, limitCount);
+      
+      return { data: finalData, lastDoc: null };
+    } catch (fallbackError) {
+      console.error("Fallback filtering also failed:", fallbackError);
+      return { data: [], lastDoc: null };
+    }
   }
 }
 
@@ -235,11 +310,21 @@ export async function deleteOpportunity(opportunityId: string): Promise<void> {
     await deleteDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId));
 
     // Sync to Algolia
-    fetch('/api/sync-opportunity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ opportunityId })
-    }).catch(console.error);
+    try {
+      const internalApiKey = process.env.INTERNAL_API_KEY;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (internalApiKey) {
+        headers['Authorization'] = `Bearer ${internalApiKey}`;
+      }
+      await fetch('/api/sync-opportunity', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ opportunityId })
+      });
+    } catch (syncError) {
+      console.error("Algolia sync failed after deleteOpportunity:", syncError);
+      // Non-blocking: opportunity is deleted from Firestore even if sync fails
+    }
   } catch (error) {
     console.error("Error deleting opportunity: ", error);
     throw error;
@@ -494,11 +579,16 @@ export async function closeOpportunity(opportunityId: string): Promise<void> {
     await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), { status: "closed" });
     
     // Sync to Algolia
-    fetch('/api/sync-opportunity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ opportunityId })
-    }).catch(console.error);
+    try {
+      await fetch('/api/sync-opportunity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ opportunityId })
+      });
+    } catch (syncError) {
+      console.error("Algolia sync failed after closeOpportunity:", syncError);
+      // Non-blocking: opportunity status is updated in Firestore even if sync fails
+    }
   } catch (error) {
     console.error("Error closing opportunity: ", error);
     throw error;
@@ -511,11 +601,21 @@ export async function openOpportunity(opportunityId: string): Promise<void> {
     await updateDoc(doc(db, OPPORTUNITIES_COLLECTION, opportunityId), { status: "open" });
 
     // Sync to Algolia
-    fetch('/api/sync-opportunity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ opportunityId })
-    }).catch(console.error);
+    try {
+      const internalApiKey = process.env.INTERNAL_API_KEY;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (internalApiKey) {
+        headers['Authorization'] = `Bearer ${internalApiKey}`;
+      }
+      await fetch('/api/sync-opportunity', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ opportunityId })
+      });
+    } catch (syncError) {
+      console.error("Algolia sync failed after openOpportunity:", syncError);
+      // Non-blocking: opportunity status is updated in Firestore even if sync fails
+    }
   } catch (error) {
     console.error("Error reopening opportunity: ", error);
     throw error;

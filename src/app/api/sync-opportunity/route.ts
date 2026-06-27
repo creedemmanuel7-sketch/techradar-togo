@@ -1,25 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { algoliaAdmin, INDEX_NAME } from "@/lib/algolia-admin";
+import { extractField, FirestoreDoc } from "@/lib/firestore-utils";
+import { headers } from "next/headers";
 
 const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-
-interface FirestoreDoc {
-  name: string;
-  fields: Record<string, any>;
-}
-
-function extractField(value: Record<string, any>): any {
-  if (!value) return null;
-  if ("stringValue" in value) return value.stringValue;
-  if ("integerValue" in value) return parseInt(value.integerValue);
-  if ("doubleValue" in value) return value.doubleValue;
-  if ("booleanValue" in value) return value.booleanValue;
-  if ("timestampValue" in value) return new Date(value.timestampValue).getTime();
-  if ("nullValue" in value) return null;
-  return null;
-}
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
 export async function POST(req: NextRequest) {
+  // Verify internal API key for security
+  const headersList = await headers();
+  const authHeader = headersList.get("authorization");
+  
+  if (!INTERNAL_API_KEY || authHeader !== `Bearer ${INTERNAL_API_KEY}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const { opportunityId } = await req.json();
     if (!opportunityId) return NextResponse.json({ error: "Missing opportunityId" }, { status: 400 });

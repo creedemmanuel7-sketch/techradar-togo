@@ -16,7 +16,11 @@ function getAdminDb() {
   return getFirestore();
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+if (!resendApiKey) {
+  console.error("RESEND_API_KEY is not configured - email notifications will be disabled");
+}
+const resend = new Resend(resendApiKey || '');
 
 export interface NotifyPayload {
   type: "new_application";
@@ -31,6 +35,8 @@ export interface NotifyPayload {
 }
 
 export async function POST(req: NextRequest) {
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://techradar-togo.vercel.app';
+  
   try {
     const body: NotifyPayload = await req.json();
 
@@ -106,7 +112,7 @@ export async function POST(req: NextRequest) {
               </div>
 
               <div style="text-align:center;">
-                <a href="https://techradar-togo.vercel.app/candidatures"
+                <a href="${APP_URL}/candidatures"
                   style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#F5E6A3);color:#000;font-weight:800;font-size:14px;padding:14px 32px;border-radius:12px;text-decoration:none;">
                   Gérer les candidatures →
                 </a>
@@ -118,7 +124,7 @@ export async function POST(req: NextRequest) {
             <td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.08);">
               <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);text-align:center;">
                 TechRadar Togo · La marketplace des talents tech au Togo<br/>
-                <a href="https://techradar-togo.vercel.app" style="color:rgba(201,168,76,0.6);">techradar-togo.vercel.app</a>
+                <a href="${APP_URL}" style="color:rgba(201,168,76,0.6);">${APP_URL}</a>
               </p>
             </td>
           </tr>

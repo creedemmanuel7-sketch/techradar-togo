@@ -17,10 +17,10 @@ interface HomeClientProps {
 export function HomeClient({ latestOpportunities, totalCount }: HomeClientProps) {
   
   const getIconForCategory = (type: string) => {
-    switch (type.toLowerCase()) {
+    switch (type) {
       case 'stage': return <GraduationCap className="w-5 h-5" />;
       case 'emploi': return <Briefcase className="w-5 h-5" />;
-      case 'événement': return <Calendar className="w-5 h-5" />;
+      case 'evenement': return <Calendar className="w-5 h-5" />;
       case 'formation': return <Target className="w-5 h-5" />;
       case 'programme': return <Rocket className="w-5 h-5" />;
       case 'concours': return <Trophy className="w-5 h-5" />;

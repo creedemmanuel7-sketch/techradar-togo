@@ -1,26 +1,11 @@
 import { NextResponse } from "next/server";
 import { algoliaAdmin, INDEX_NAME } from "@/lib/algolia-admin";
+import { extractField, FirestoreDoc } from "@/lib/firestore-utils";
+import { headers } from "next/headers";
 
 const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 const FIRESTORE_REST_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/opportunities`;
-
-interface FirestoreDoc {
-  name: string;
-  fields: Record<string, any>;
-  createTime?: string;
-  updateTime?: string;
-}
-
-function extractField(value: Record<string, any>): any {
-  if (!value) return null;
-  if ("stringValue" in value) return value.stringValue;
-  if ("integerValue" in value) return parseInt(value.integerValue);
-  if ("doubleValue" in value) return value.doubleValue;
-  if ("booleanValue" in value) return value.booleanValue;
-  if ("timestampValue" in value) return new Date(value.timestampValue).getTime();
-  if ("nullValue" in value) return null;
-  return null;
-}
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
 async function fetchAllDocs(): Promise<FirestoreDoc[]> {
   const all: FirestoreDoc[] = [];
@@ -45,10 +30,18 @@ async function fetchAllDocs(): Promise<FirestoreDoc[]> {
 }
 
 export async function GET() {
+  // Verify internal API key for security
+  const headersList = await headers();
+  const authHeader = headersList.get("authorization");
+  
+  if (!INTERNAL_API_KEY || authHeader !== `Bearer ${INTERNAL_API_KEY}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const docs = await fetchAllDocs();
 
-    const objects = docs.map((doc) => {
+    const objects = docs.map((doc: FirestoreDoc) => {
       const f = doc.fields || {};
       const id = doc.name.split("/").pop()!;
       return {

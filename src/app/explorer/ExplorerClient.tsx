@@ -165,11 +165,10 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
       opp.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.domain.toLowerCase().includes(searchQuery.toLowerCase());
       
-    // Apply dropdown filters (type & domain) locally to the result set
-    const matchType = activeType === "Tous" || opp.type === activeType;
-    const matchDomain = activeDomain === "Tous" || opp.domain === activeDomain;
+    // Note: Type and domain filters are already applied by Firestore in getFilteredOpportunities
+    // We don't need to filter them locally anymore
     
-    return matchSearch && matchType && matchDomain;
+    return matchSearch;
   });
 
   const oppsWithMatch = filteredOpps.map(opp => {

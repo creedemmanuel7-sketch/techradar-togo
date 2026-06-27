@@ -1,3 +1,9 @@
+/**
+ * @deprecated This file contains mock data for development/testing only.
+ * The application now uses Firestore as the primary data source.
+ * Consider removing this file if no longer needed.
+ */
+
 export const mockOpportunities = [
   {
     id: "1",
