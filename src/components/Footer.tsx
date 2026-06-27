@@ -72,8 +72,8 @@ export default function Footer() {
             {/* SOCIALS */}
             <div className="flex items-center gap-3">
               {[
-                { name: "LinkedIn", href: "https://linkedin.com/company/techradar-togo" },
-                { name: "Twitter/X", href: "https://twitter.com/techradar_togo" },
+                { name: "LinkedIn", href: "#" },
+                { name: "Twitter/X", href: "#" },
                 { name: "GitHub", href: "https://github.com/creedemmanuel7-sketch/techradar-togo" },
               ].map(({ name, href }) => (
                 <a
@@ -152,8 +152,8 @@ export default function Footer() {
 
         {/* Legal Links */}
         <div className="flex items-center justify-center gap-6 mt-8 text-sm font-medium text-white/40">
-          <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
-          <a href="#" className="hover:text-white transition-colors">Conditions</a>
+          <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
+          <Link href="/conditions" className="hover:text-white transition-colors">Conditions</Link>
           <Link href="/a-propos" className="hover:text-white transition-colors">À propos</Link>
         </div>
       </div>
