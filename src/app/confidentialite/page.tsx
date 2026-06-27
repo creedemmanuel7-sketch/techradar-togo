@@ -161,7 +161,7 @@ export default function ConfidentialitePage() {
               </li>
             </ul>
             <p className="text-white/50 text-sm mt-4">
-              Pour exercer ces droits, contactez-nous à : privacy@techradar.tg
+              Pour exercer ces droits, contactez-nous à : creedemmanuel7@gmail.com
             </p>
           </div>
 
@@ -172,7 +172,7 @@ export default function ConfidentialitePage() {
               Pour toute question concernant cette politique de confidentialité ou vos données personnelles, n'hésitez pas à nous contacter :
             </p>
             <p className="text-white font-medium mt-2">
-              📧 privacy@techradar.tg
+              📧 creedemmanuel7@gmail.com
             </p>
           </div>
         </div>

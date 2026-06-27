@@ -217,7 +217,7 @@ export default function ConditionsPage() {
               Pour toute question concernant ces conditions d'utilisation, n'hésitez pas à nous contacter :
             </p>
             <p className="text-white font-medium mt-2">
-              📧 legal@techradar.tg
+              📧 creedemmanuel7@gmail.com
             </p>
           </div>
         </div>
