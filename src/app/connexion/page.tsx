@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
+import { Loader2, Mail, Lock, Eye, EyeOff, Globe, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 
 // C-1 : Codes d'erreur Firebase → messages utilisateurs clairs
@@ -21,6 +21,8 @@ const FIREBASE_ERRORS: Record<string, string> = {
 export default function ConnexionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGithubLoading, setIsGithubLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [formData, setFormData] = useState({
@@ -76,6 +78,34 @@ export default function ConnexionPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      window.location.href = "/explorer";
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      toast.error("Erreur lors de la connexion avec Google.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGithubSignIn = async () => {
+    setIsGithubLoading(true);
+    try {
+      const provider = new GithubAuthProvider();
+      await signInWithPopup(auth, provider);
+      window.location.href = "/explorer";
+    } catch (error: any) {
+      console.error("GitHub sign-in error:", error);
+      toast.error("Erreur lors de la connexion avec GitHub.");
+    } finally {
+      setIsGithubLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 overflow-hidden relative">
       <div className="absolute inset-0 bg-black/40 z-0"></div>
@@ -90,6 +120,33 @@ export default function ConnexionPage() {
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#C9A84C]/40 to-transparent opacity-50"></div>
           
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Social Sign-in Buttons */}
+            <div className="space-y-3 mb-6">
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isGoogleLoading}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-all disabled:opacity-50"
+              >
+                {isGoogleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Globe className="w-5 h-5" />}
+                Continuer avec Google
+              </button>
+              <button
+                type="button"
+                onClick={handleGithubSignIn}
+                disabled={isGithubLoading}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-all disabled:opacity-50"
+              >
+                {isGithubLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GitBranch className="w-5 h-5" />}
+                Continuer avec GitHub
+              </button>
+            </div>
+
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 h-px bg-white/10"></div>
+              <span className="text-xs text-white/40">ou</span>
+              <div className="flex-1 h-px bg-white/10"></div>
+            </div>
             
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-semibold text-white/70 ml-1 block">Adresse E-mail</label>

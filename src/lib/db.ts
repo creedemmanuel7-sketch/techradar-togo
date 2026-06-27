@@ -44,6 +44,9 @@ export interface UserProfile {
   isVerified?: boolean; // Recruteur vérifié
   notifCount?: number;  // Notifs non lues (candidatures reçues)
   createdAt?: number;
+  authProvider?: string; // "email", "google", "github"
+  deviceInfo?: string; // User-Agent du navigateur
+  source?: string; // "direct", "referral", "social", etc.
 }
 
 // ─── Applications (Candidatures) ───────────────────────────────────────────

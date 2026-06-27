@@ -178,6 +178,7 @@ export default function AdminDashboard() {
                     <th className="px-6 py-4">Nom / Email</th>
                     <th className="px-6 py-4">Rôle</th>
                     <th className="px-6 py-4">Inscription</th>
+                    <th className="px-6 py-4">Appareil / Source</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -198,7 +199,28 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-white/40">
-                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "N/A"}
+                        {u.createdAt ? new Date(u.createdAt).toLocaleString() : "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-white/40">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs">
+                            {u.authProvider ? (
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                u.authProvider === "google" ? "bg-blue-500/20 text-blue-400" :
+                                u.authProvider === "github" ? "bg-purple-500/20 text-purple-400" :
+                                "bg-gray-500/20 text-gray-400"
+                              }`}>
+                                {u.authProvider}
+                              </span>
+                            ) : "N/A"}
+                          </span>
+                          <span className="text-[10px] text-white/30 truncate max-w-[200px]" title={u.source || "N/A"}>
+                            Source: {u.source || "N/A"}
+                          </span>
+                          <span className="text-[10px] text-white/30 truncate max-w-[200px]" title={u.deviceInfo || "N/A"}>
+                            {u.deviceInfo ? u.deviceInfo.substring(0, 30) + "..." : "N/A"}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right">
                         {u.role !== "admin" && (
