@@ -129,6 +129,10 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Erreur seed data:', error);
-    return NextResponse.json({ success: false, error: 'Erreur lors de la création des données' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Erreur lors de la création des données',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
