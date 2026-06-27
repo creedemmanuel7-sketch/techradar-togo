@@ -79,8 +79,8 @@ export default function Footer() {
                 <a
                   key={name}
                   href={href}
-                  target="_blank"
-                  rel="noreferrer"
+                  target={href === "#" ? "_self" : "_blank"}
+                  rel={href === "#" ? "" : "noreferrer"}
                   aria-label={name}
                   className="w-9 h-9 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
                 >
