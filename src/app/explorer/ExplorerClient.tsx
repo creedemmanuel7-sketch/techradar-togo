@@ -409,20 +409,36 @@ export function ExplorerClient({ initialOpportunities }: ExplorerClientProps) {
                                   </span>
                                 )}
                                 
-                                {/* Match Badge */}
+                                {/* Match Badge with Progress Bar */}
                                 {opp.match.score > 0 && opp.status !== "closed" && (
-                                  <div className="flex flex-col gap-1 items-start">
-                                    <span 
-                                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap ${
-                                      opp.match.score >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
-                                      opp.match.score >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
-                                      "bg-white/10 text-white/50 border-white/10"
-                                    }`}>
-                                      {userSkills ? `Match : ${opp.match.score}%` : `Pertinence : ${opp.match.score}%`}
-                                    </span>
+                                  <div className="flex flex-col gap-1.5 items-start min-w-[120px]">
+                                    <div className="flex items-center gap-2">
+                                      <span 
+                                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-lg whitespace-nowrap ${
+                                        opp.match.score >= 80 ? "bg-green-500/20 text-green-400 border-green-500/30" : 
+                                        opp.match.score >= 50 ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
+                                        "bg-white/10 text-white/50 border-white/10"
+                                      }`}>
+                                        {userSkills ? `Match : ${opp.match.score}%` : `Pertinence : ${opp.match.score}%`}
+                                      </span>
+                                    </div>
+                                    {/* Progress Bar */}
+                                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                      <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${opp.match.score}%` }}
+                                        transition={{ duration: 0.8, ease: "easeOut" }}
+                                        className={`h-full rounded-full ${
+                                          opp.match.score >= 80 ? "bg-gradient-to-r from-green-500 to-green-400" :
+                                          opp.match.score >= 50 ? "bg-gradient-to-r from-blue-500 to-blue-400" :
+                                          "bg-gradient-to-r from-white/30 to-white/20"
+                                        }`}
+                                      />
+                                    </div>
                                     {opp.match.matchedSkills && opp.match.matchedSkills.length > 0 && (
                                       <span className="text-[10px] text-white/50 bg-black/20 px-1.5 py-0.5 rounded border border-white/5">
-                                        💡 {opp.match.matchedSkills.join(", ")}
+                                        💡 {opp.match.matchedSkills.slice(0, 3).join(", ")}
+                                        {opp.match.matchedSkills.length > 3 && "..."}
                                       </span>
                                     )}
                                   </div>

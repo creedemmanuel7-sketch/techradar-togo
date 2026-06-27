@@ -135,35 +135,105 @@ export default function AdminDashboard() {
 
         {/* TAB: STATS */}
         {activeTab === "stats" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-              <div className="flex items-center gap-3 text-white/50 mb-2">
-                <Users className="w-5 h-5" /> Utilisateurs Inscrits
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A84C]/10 rounded-full blur-3xl"></div>
+                <div className="flex items-center gap-3 text-white/50 mb-2">
+                  <Users className="w-5 h-5" /> Utilisateurs Inscrits
+                </div>
+                <p className="text-4xl font-black text-white">{users.length}</p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
+                        style={{ width: `${users.length > 0 ? (users.filter(u => u.role === "talent").length / users.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-white/40 w-16">{users.filter(u => u.role === "talent").length} talents</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
+                        style={{ width: `${users.length > 0 ? (users.filter(u => u.role === "recruiter").length / users.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-white/40 w-16">{users.filter(u => u.role === "recruiter").length} recruteurs</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-4xl font-black text-white">{users.length}</p>
-              <div className="mt-4 flex gap-4 text-sm text-white/40">
-                <span>{users.filter(u => u.role === "talent").length} talents</span>
-                <span>{users.filter(u => u.role === "recruiter").length} recruteurs</span>
+              
+              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A84C]/10 rounded-full blur-3xl"></div>
+                <div className="flex items-center gap-3 text-white/50 mb-2">
+                  <Briefcase className="w-5 h-5" /> Offres Publiées
+                </div>
+                <p className="text-4xl font-black text-[#C9A84C]">{opportunities.length}</p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
+                        style={{ width: `${opportunities.length > 0 ? (opportunities.filter(o => o.status !== "closed").length / opportunities.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-white/40 w-16">{opportunities.filter(o => o.status !== "closed").length} actives</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full"
+                        style={{ width: `${opportunities.length > 0 ? (opportunities.filter(o => o.status === "closed").length / opportunities.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-white/40 w-16">{opportunities.filter(o => o.status === "closed").length} pourvues</span>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-              <div className="flex items-center gap-3 text-white/50 mb-2">
-                <Briefcase className="w-5 h-5" /> Offres Publiées
-              </div>
-              <p className="text-4xl font-black text-[#C9A84C]">{opportunities.length}</p>
-              <div className="mt-4 flex gap-4 text-sm text-white/40">
-                <span>{opportunities.filter(o => o.status !== "closed").length} actives</span>
-                <span>{opportunities.filter(o => o.status === "closed").length} pourvues</span>
+
+              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A84C]/10 rounded-full blur-3xl"></div>
+                <div className="flex items-center gap-3 text-white/50 mb-2">
+                  <Shield className="w-5 h-5" /> Candidatures
+                </div>
+                <p className="text-4xl font-black text-white">{applicationsCount}</p>
+                <div className="mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#C9A84C] to-[#F5E6A3] rounded-full"
+                        style={{ width: `${Math.min(applicationsCount * 5, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-white/40 w-16">Total</span>
+                  </div>
+                </div>
               </div>
             </div>
 
+            {/* Auth Providers Distribution */}
             <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-              <div className="flex items-center gap-3 text-white/50 mb-2">
-                <Shield className="w-5 h-5" /> Candidatures
+              <h3 className="text-lg font-bold mb-4 text-white">Méthodes d'inscription</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { provider: "email", count: users.filter(u => u.authProvider === "email").length, color: "from-gray-500 to-gray-400" },
+                  { provider: "google", count: users.filter(u => u.authProvider === "google").length, color: "from-blue-500 to-blue-400" },
+                  { provider: "github", count: users.filter(u => u.authProvider === "github").length, color: "from-purple-500 to-purple-400" },
+                ].map(({ provider, count, color }) => (
+                  <div key={provider} className="bg-white/5 rounded-xl p-4">
+                    <p className="text-xs text-white/40 mb-2 capitalize">{provider}</p>
+                    <p className="text-2xl font-bold text-white">{count}</p>
+                    <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full bg-gradient-to-r ${color} rounded-full`}
+                        style={{ width: `${users.length > 0 ? (count / users.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-4xl font-black text-white">{applicationsCount}</p>
-              <p className="mt-4 text-sm text-white/40">Total sur la plateforme</p>
             </div>
           </div>
         )}
